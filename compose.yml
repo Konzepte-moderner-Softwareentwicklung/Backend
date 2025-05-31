@@ -1,0 +1,27 @@
+services:
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"   # Client connections
+      - "8222:8222"   # Monitoring
+    command: ["-js"]  # Enable JetStream
+    networks:
+      - default
+
+  gateway:
+    build: .
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+
+volumes:
+  mongo-data:
+
+networks:
+  default:
+
