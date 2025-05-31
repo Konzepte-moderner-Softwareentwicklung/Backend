@@ -52,57 +52,17 @@ func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		// Wrap the response writer to capture the status code
-		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-
-		next.ServeHTTP(rw, r)
-
 		duration := time.Since(start)
 		fullURL := fmt.Sprintf("%s://%s%s", GetScheme(r), r.Host, r.RequestURI)
 
 		level := s.log.Debug()
-		if rw.statusCode >= 500 {
-			level = s.log.Error()
-		}
-
+		next.ServeHTTP(w, r)
 		level.
 			Str("url", fullURL).
 			Str("method", r.Method).
-			Int("status code", rw.statusCode).
 			Int("duration", int(duration.Milliseconds())).
-			Str("content", string(rw.content)).
-			Any("args", rw.Header()).
 			Msg("request")
 	})
-}
-
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode   int
-	wroteHeader  bool
-	wroteContent bool
-	content      []byte
-}
-
-// WriteHeader sets the status code
-func (rw *responseWriter) WriteHeader(code int) {
-	if !rw.wroteHeader {
-		rw.statusCode = code
-		rw.wroteHeader = true
-		rw.ResponseWriter.WriteHeader(code)
-	}
-}
-
-// Write writes the body and sets 200 if not already set
-func (rw *responseWriter) Write(b []byte) (int, error) {
-	rw.wroteContent = true
-	rw.content = append(rw.content, b...)
-
-	if !rw.wroteHeader {
-		// Status code not explicitly set, default to 200
-		rw.WriteHeader(http.StatusOK)
-	}
-	return rw.ResponseWriter.Write(b)
 }
 
 func (s *Server) WithPort(port int) *Server {
@@ -125,11 +85,17 @@ func (s *Server) WithHandlerFunc(path string, handler http.HandlerFunc, methods 
 	return s
 }
 
-func Error(w http.ResponseWriter, message string, code int) {
+func (s *Server) Error(w http.ResponseWriter, message string, code int) {
+	s.log.Error().Msgf("Error: %s", message)
 	http.Error(w, message, code)
 }
 
-func Warning(w http.ResponseWriter, code int, message string) {
+func (s *Server) Info(message string) {
+	s.log.Info().Msg(message)
+}
+
+func (s *Server) Warning(w http.ResponseWriter, code int, message string) {
+	s.log.Warn().Msgf("Warning: %s", message)
 	w.Header().Add("Warning", fmt.Sprintf(`%d - "%s"`, code, message))
 }
 

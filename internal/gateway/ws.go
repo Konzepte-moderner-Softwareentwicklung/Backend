@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/nats-io/nats.go"
@@ -22,28 +21,63 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// sends messages to the websocket connection from the NATS server (subject = user.<uuid>)
 func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
-	var (
-		uid uuid.UUID
-		err error
-	)
-	if uid, err = uuid.Parse(id); err != nil {
-		server.Error(w, "Invalid user ID", http.StatusBadRequest)
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		s.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-	conn, err := upgrader.Upgrade(w, r, nil)
-	subject := fmt.Sprintf("user.%s", uid.String())
 
-	s.Subscribe(subject, func(m *nats.Msg) {
-		conn.WriteMessage(websocket.TextMessage, m.Data)
-	})
+	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		s.GetLogger().Err(err)
+		s.Error(w, "WebSocket upgrade failed", http.StatusInternalServerError)
 		return
 	}
-
 	defer conn.Close()
+
+	subject := fmt.Sprintf("user.%s", uid.String())
+
+	// Optional: channel für thread-sicheres Schreiben
+	writeChan := make(chan []byte)
+	done := make(chan struct{})
+
+	// NATS-Subscription
+	sub, err := s.Subscribe(subject, func(m *nats.Msg) {
+		select {
+		case writeChan <- m.Data:
+		case <-done:
+		}
+	})
+	if err != nil {
+		s.Error(w, "Failed to subscribe to subject", http.StatusInternalServerError)
+		return
+	}
+	defer sub.Unsubscribe()
+
+	// Writer-Goroutine
+	go func() {
+		for {
+			select {
+			case msg := <-writeChan:
+				if err := conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+					s.GetLogger().Err(err)
+					close(done)
+					return
+				}
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	// Reader-Loop (nur um Verbindung offen zu halten)
+	for {
+		if _, _, err := conn.ReadMessage(); err != nil {
+			s.GetLogger().Err(err)
+			close(done)
+			break
+		}
+	}
 }
