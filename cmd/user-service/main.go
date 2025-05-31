@@ -27,11 +27,11 @@ func main() {
 	flag.Parse()
 
 	logger := zerolog.New(os.Stdout).Level(zerolog.DebugLevel)
-	repo, err := repo.NewMongoRepo(mongoURL)
+	repository, err := repo.NewMongoRepo(mongoURL)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to create MongoDB repository")
 	}
-	userservice.New(userservice.NewUserService(repo)).
+	userservice.New(userservice.NewUserService(repository)).
 		WithLogger(logger).
 		WithLogRequest().
 		WithPort(port).

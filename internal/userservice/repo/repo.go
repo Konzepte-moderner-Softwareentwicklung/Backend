@@ -8,5 +8,5 @@ type Repo interface {
 	UpdateUser(user User) error
 	DeleteUser(id uuid.UUID) error
 	GetUsers() ([]User, error)
-	GetUserByEmail(email string) (*User, error)
+	GetUserByEmail(email string) (User, error)
 }

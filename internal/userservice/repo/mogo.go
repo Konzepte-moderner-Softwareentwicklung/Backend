@@ -30,6 +30,21 @@ const (
 	CollectionUser = "users"
 )
 
+func (r *MongoRepo) GetUsers() ([]User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := r.userCollection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var users []User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func NewMongoRepo(mongoUri string) (*MongoRepo, error) {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(mongoUri))
 	if err != nil {
