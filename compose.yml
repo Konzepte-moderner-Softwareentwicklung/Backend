@@ -1,15 +1,31 @@
 services:
+  nats-ui:
+    depends_on:
+      - nats
+    image: ghcr.io/nats-nui/nui
+    ports:
+      - "31311:31311" # Monitoring
+    networks:
+      - default
+
   nats:
     image: nats:latest
     ports:
-      - "4222:4222"   # Client connections
-      - "8222:8222"   # Monitoring
-    command: ["-js"]  # Enable JetStream
+      - "4222:4222" # Client connections
+      - "8222:8222" # Monitoring
+    command: ["-js"] # Enable JetStream
     networks:
       - default
 
   gateway:
-    build: .
+    depends_on:
+      - nats
+    build:
+      context: .
+      dockerfile: cmd/gateway/Dockerfile
+
+    ports:
+      - "8081:8080"
 
   mongo:
     image: mongo:latest
@@ -18,10 +34,8 @@ services:
     volumes:
       - mongo-data:/data/db
 
-
 volumes:
   mongo-data:
 
 networks:
   default:
-

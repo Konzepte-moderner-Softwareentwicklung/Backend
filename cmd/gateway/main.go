@@ -23,7 +23,7 @@ func main() {
 	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
 	flag.Parse()
 
-	logger := zerolog.New(os.Stdout)
+	logger := zerolog.New(os.Stdout).Level(zerolog.DebugLevel)
 
 	gateway.New(natsURL).
 		WithLogger(logger).
