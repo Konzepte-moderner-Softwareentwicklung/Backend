@@ -31,6 +31,11 @@ func (s *UserService) GetUserByID(id uuid.UUID) (repo.User, error) {
 
 func (s *UserService) UpdateUser(userid uuid.UUID, user repo.User) error {
 	user.ID = userid
+	hashedPassword, err := hasher.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Password = hashedPassword
 	return s.repo.UpdateUser(user)
 }
 

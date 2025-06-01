@@ -8,12 +8,12 @@ import (
 
 type AuthMiddleware struct {
 	// Add fields here
-	decoder jwt.Decoder
+	decoder jwt.Decodable
 }
 
 func NewAuthMiddleware(secret []byte) *AuthMiddleware {
 	return &AuthMiddleware{
-		decoder: *jwt.NewDecoder(secret),
+		decoder: jwt.NewDecoder(secret),
 	}
 }
 
