@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	natsreciver "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/nats-reciver"
@@ -14,7 +15,7 @@ type Service struct {
 	*auth.AuthMiddleware
 }
 
-func New(natsurl string, jwtSecret []byte) *Service {
+func New(natsurl string, jwtSecret []byte, proxyEndpoints map[string]url.URL) *Service {
 	reciver, err := natsreciver.New(natsurl)
 	if err != nil {
 		panic(err)
@@ -25,10 +26,12 @@ func New(natsurl string, jwtSecret []byte) *Service {
 		auth.NewAuthMiddleware(jwtSecret),
 	}
 	setupRoutes(svr)
+	setupProxy(svr, proxyEndpoints)
+
 	return svr
 }
 
 func setupRoutes(s *Service) {
-	s.WithHandlerFunc("/health", s.EnsureJWT(s.HealthCheck), http.MethodGet)
+	s.WithHandlerFunc("/health", s.HealthCheck, http.MethodGet)
 	s.WithHandlerFunc("/ws", s.WSHandler, http.MethodGet)
 }
