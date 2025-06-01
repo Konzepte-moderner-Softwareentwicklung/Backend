@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/gateway"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 )

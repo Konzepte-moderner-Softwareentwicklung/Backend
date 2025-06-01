@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/userservice/repo"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
 	"github.com/google/uuid"
 )
 
