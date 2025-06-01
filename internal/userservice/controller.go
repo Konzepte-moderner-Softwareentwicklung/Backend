@@ -3,7 +3,10 @@ package userservice
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/jwt"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/userservice/repo"
@@ -18,6 +21,7 @@ const (
 type UserController struct {
 	*server.Server
 	*auth.AuthMiddleware
+	*jwt.Encoder
 	service *UserService
 }
 
@@ -25,6 +29,7 @@ func New(svc *UserService, secret []byte) *UserController {
 	svr := &UserController{
 		Server:         server.NewServer(),
 		AuthMiddleware: auth.NewAuthMiddleware(secret),
+		Encoder:        jwt.NewEncoder(secret),
 		service:        svc,
 	}
 
@@ -34,12 +39,15 @@ func New(svc *UserService, secret []byte) *UserController {
 }
 
 func (c *UserController) setupRoutes() {
-	c.WithHandlerFunc("/users", c.GetUsers, http.MethodGet)
-	c.WithHandlerFunc("/users", c.CreateUser, http.MethodPost)
-	c.WithHandlerFunc("/users/{id}", c.EnsureJWT(c.UpdateUser), http.MethodPut)
-	c.WithHandlerFunc("/users/{id}", c.EnsureJWT(c.DeleteUser), http.MethodDelete)
+	// user
+	c.WithHandlerFunc("/", c.GetUsers, http.MethodGet)
+	c.WithHandlerFunc("/", c.CreateUser, http.MethodPost)
+	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.UpdateUser), http.MethodPut)
+	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.DeleteUser), http.MethodDelete)
+	c.WithHandlerFunc("/{id}", c.GetUser, http.MethodGet)
 
-	c.WithHandlerFunc("/users/{id}", c.GetUser, http.MethodGet)
+	// login
+	c.WithHandlerFunc("/login", c.GetLoginToken, http.MethodPost)
 }
 
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -163,4 +171,43 @@ func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *UserController) GetLoginToken(w http.ResponseWriter, r *http.Request) {
+	credentials := struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}{
+		Email:    "",
+		Password: "",
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
+		http.Error(w, "Fehler beim Lesen der Anfrage", http.StatusBadRequest)
+		return
+	}
+
+	user, err := c.service.repo.GetUserByEmail(credentials.Email)
+	if err != nil {
+		http.Error(w, "Nutzer nicht gefunden", http.StatusInternalServerError)
+		return
+	}
+
+	// Verify the password
+	if err := hasher.VerifyPassword(user.Password, credentials.Password); err != nil {
+		http.Error(w, "Falsches Passwort", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := c.Encoder.EncodeUUID(user.ID, time.Duration(24*time.Hour))
+	if err != nil {
+		http.Error(w, "Fehler beim Generieren des Tokens", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(map[string]string{"token": token})
+	if err != nil {
+		http.Error(w, "Fehler beim Kodieren der Antwort", http.StatusInternalServerError)
+	}
 }
