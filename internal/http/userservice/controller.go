@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/jwt"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/userservice/repo"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )

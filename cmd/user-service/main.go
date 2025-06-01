@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/userservice"
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/userservice/repo"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 )
