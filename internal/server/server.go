@@ -55,7 +55,7 @@ func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 		fullURL := fmt.Sprintf("%s://%s%s", GetScheme(r), r.Host, r.RequestURI)
 
-		level := s.log.Debug()
+		level := s.log.Info()
 		next.ServeHTTP(w, r)
 		level.
 			Str("url", fullURL).

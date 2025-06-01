@@ -15,11 +15,12 @@ const (
 )
 
 var (
-	port        int
-	natsURL     string
-	jwtKey      string
-	userService string
-	isVerbose   bool
+	port         int
+	natsURL      string
+	jwtKey       string
+	userService  string
+	mediaService string
+	isVerbose    bool
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
 	flag.StringVar(&jwtKey, "jwt", "some jwt key", "JWT key")
 	flag.StringVar(&userService, "user-service", "http://user-service:8080", "User service URL")
+	flag.StringVar(&mediaService, "media-service", "http://media-service:8080", "Media service URL")
 	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
 	flag.Parse()
 
@@ -36,14 +38,19 @@ func main() {
 	}
 	logger := zerolog.New(os.Stdout).Level(loglevel)
 
-	// parse user service URL
+	// parse URLs
 	userServiceURL, err := url.Parse(userService)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to parse user service URL")
 	}
+	mediaServiceURL, err := url.Parse(mediaService)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to parse media service URL")
+	}
 
 	gateway.New(natsURL, []byte(jwtKey), map[string]url.URL{
-		"user": *userServiceURL,
+		"user":  *userServiceURL,
+		"media": *mediaServiceURL,
 	}).
 		WithLogger(logger).
 		WithLogRequest().
