@@ -90,6 +90,13 @@ func (s *Server) Error(w http.ResponseWriter, message string, code int) {
 	http.Error(w, message, code)
 }
 
+func (s *Server) WithVersion(version string) *Server {
+	s.WithHandlerFunc("/version", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Version: %s", version)
+	}, http.MethodGet)
+	return s
+}
+
 func (s *Server) Info(message string) {
 	s.log.Info().Msg(message)
 }

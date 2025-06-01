@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,14 +12,29 @@ import (
 )
 
 type User struct {
-	ID             uuid.UUID `bson:"_id"`
-	BirthDate      time.Time `bson:"birthDate"`
-	FirstName      string    `bson:"firstName"`
-	LastName       string    `bson:"lastName"`
-	Email          string    `bson:"email"`
-	Password       string    `bson:"password"`
-	PhoneNumber    string    `bson:"phoneNumber"`
-	ProfilePicture string    `bson:"profilePicture"`
+	ID             uuid.UUID `bson:"_id"             json:"id"`
+	BirthDate      time.Time `bson:"birthDate"      json:"birthDate"`
+	FirstName      string    `bson:"firstName"      json:"firstName"`
+	LastName       string    `bson:"lastName"       json:"lastName"`
+	Email          string    `bson:"email"          json:"email"`
+	Password       string    `bson:"password"       json:"-"`
+	PhoneNumber    string    `bson:"phoneNumber"    json:"phoneNumber"`
+	ProfilePicture string    `bson:"profilePicture" json:"profilePicture"`
+}
+
+func (u *User) UnmarshalJSON(data []byte) error {
+	type Alias User // alias ohne json:"-"
+	aux := &struct {
+		Password string `json:"password"` // wird beim Einlesen beachtet
+		*Alias
+	}{
+		Alias: (*Alias)(u),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	u.Password = aux.Password
+	return nil
 }
 
 type MongoRepo struct {

@@ -53,5 +53,9 @@ func (s *UserService) CreateUser(user repo.User) error {
 }
 
 func (s *UserService) GetUsers() ([]repo.User, error) {
-	return s.repo.GetUsers()
+	users, err := s.repo.GetUsers()
+	for i := range len(users) {
+		users[i].Password = ""
+	}
+	return users, err
 }

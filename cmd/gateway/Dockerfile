@@ -10,4 +10,4 @@ FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /bin/gateway .
 EXPOSE 8080
-CMD ["./gateway", "-port", "8080", "-nats", "nats://nats:4222"]
+CMD ["./gateway", "-port", "8080", "-nats", "nats://nats:4222", "-verbose"]

@@ -51,6 +51,7 @@ func main() {
 	userservice.New(service, []byte(jwtKey)).
 		WithLogger(logger).
 		WithLogRequest().
+		WithVersion("1.0.0").
 		WithPort(port).
 		ListenAndServe()
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net/url"
 	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
@@ -14,21 +15,38 @@ const (
 )
 
 var (
-	port    int
-	natsURL string
-	jwtKey  string
+	port        int
+	natsURL     string
+	jwtKey      string
+	userService string
+	isVerbose   bool
 )
 
 func main() {
 	flag.IntVar(&port, "port", DEFAULT_PORT, "Port to listen on")
 	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
 	flag.StringVar(&jwtKey, "jwt", "some jwt key", "JWT key")
+	flag.StringVar(&userService, "user-service", "http://user-service:8080", "User service URL")
+	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
 	flag.Parse()
 
-	logger := zerolog.New(os.Stdout).Level(zerolog.DebugLevel)
+	var loglevel zerolog.Level = zerolog.InfoLevel
+	if isVerbose {
+		loglevel = zerolog.DebugLevel
+	}
+	logger := zerolog.New(os.Stdout).Level(loglevel)
 
-	gateway.New(natsURL, []byte(jwtKey)).
+	// parse user service URL
+	userServiceURL, err := url.Parse(userService)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to parse user service URL")
+	}
+
+	gateway.New(natsURL, []byte(jwtKey), map[string]url.URL{
+		"user": *userServiceURL,
+	}).
 		WithLogger(logger).
 		WithLogRequest().
+		WithVersion("1.0.0").
 		WithPort(port).ListenAndServe()
 }
