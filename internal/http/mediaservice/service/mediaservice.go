@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -94,4 +96,68 @@ func (m *MediaService) GetPicture(ctx context.Context, pictureName string) ([]by
 		return nil, fmt.Errorf("failed to read object: %v", err)
 	}
 	return buf.Bytes(), nil
+}
+
+func (m *MediaService) UploadPictureToMulti(ctx context.Context, uploader, compoundID string, contentType string, picture []byte) error {
+	name := uuid.New().String()
+
+	// file size limit to 6MB
+	if len(picture) > 6e6 {
+		return fmt.Errorf("file size to big. max 6mb allowed")
+	}
+
+	// Vereinfachte Content-Type-Erkennung anhand der Dateiendung
+	switch contentType {
+	case "image/jpeg":
+		break
+	case "image/png":
+		break
+	case "application/octet-stream":
+		break
+	default:
+		return fmt.Errorf("unsupported file type")
+	}
+
+	_, err := m.client.PutObject(
+		ctx,
+		PICTURE_BUCKET_NAME,
+		name,
+		bytes.NewReader(picture),
+		int64(len(picture)),
+		minio.PutObjectOptions{
+			ContentType: contentType,
+			UserMetadata: map[string]string{
+				"id":          uploader,
+				"Compound-Id": compoundID,
+			},
+		},
+	)
+	return err
+}
+
+func (m *MediaService) GetMultiPicture(ctx context.Context, id uuid.UUID) ([]string, error) {
+	objectCh := m.client.ListObjects(ctx, PICTURE_BUCKET_NAME, minio.ListObjectsOptions{
+		Recursive: true,
+	})
+	var pictureNames []string
+	for obj := range objectCh {
+		if obj.Err != nil {
+			log.Println("Error listing object:", obj.Err)
+			continue
+		}
+
+		// Get object metadata
+		info, err := m.client.StatObject(ctx, PICTURE_BUCKET_NAME, obj.Key, minio.StatObjectOptions{})
+		if err != nil {
+			log.Println("Error statting object:", err)
+			continue
+		}
+
+		meta := info.UserMetadata
+		os.Stdout.WriteString(fmt.Sprintf("%v", meta))
+		if compoundID, ok := meta["Compound-Id"]; ok && compoundID == id.String() {
+			pictureNames = append(pictureNames, obj.Key)
+		}
+	}
+	return pictureNames, nil
 }

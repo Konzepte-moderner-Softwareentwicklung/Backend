@@ -63,6 +63,17 @@ services:
       - default
     command: server /data --console-address ":9001"
 
+  angebot-service:
+    depends_on:
+      - mongo
+    build:
+      context: .
+      dockerfile: cmd/angebot-service/Dockerfile
+    ports:
+      - "8084:8080"
+    networks:
+      - default
+
   media-service:
     depends_on:
       - nats
