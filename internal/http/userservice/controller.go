@@ -66,8 +66,9 @@ func (c *UserController) setupRoutes() {
 	// user
 	c.WithHandlerFunc("/", c.GetUsers, http.MethodGet)
 	c.WithHandlerFunc("/", c.CreateUser, http.MethodPost)
-	c.WithHandlerFunc("/", c.EnsureJWT(c.UpdateUser), http.MethodPut)
-	c.WithHandlerFunc("/", c.EnsureJWT(c.DeleteUser), http.MethodDelete)
+	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.UpdateUser), http.MethodPut)
+	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.DeleteUser), http.MethodDelete)
+	c.WithHandlerFunc("/email", c.GetUserByEmail, http.MethodGet)
 	c.WithHandlerFunc("/{id}", c.GetUser, http.MethodGet)
 
 	// login
@@ -197,6 +198,21 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(users)
 	if err != nil {
 		c.Error(w, "Fehler beim Kodieren der Antwort", http.StatusInternalServerError)
+	}
+}
+
+func (c *UserController) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+	email := r.URL.Query().Get("email")
+	user, err := c.service.repo.GetUserByEmail(email)
+	if err != nil {
+		http.Error(w, "Fehler beim Laden des Benutzers", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		http.Error(w, "Fehler beim Kodieren der Antwort", http.StatusInternalServerError)
 	}
 }
 
