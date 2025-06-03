@@ -1,18 +1,34 @@
 package userservice
 
 import (
+	"errors"
+
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 )
 
 type UserService struct {
 	repo repo.Repo
+	webauth *webauthn.WebAuthn
 }
 
 func NewUserService(repo repo.Repo) *UserService {
+	wauth, err := webauthn.New(
+		&webauthn.Config{
+			RPID:                "localhost",
+			RPDisplayName:       "Example",
+			RPOrigins:           []string{"http://localhost"},
+		},
+	)
+	if err != nil {
+		panic("failed to create webauthn instance: " + err.Error())
+	}
+
 	return &UserService{
 		repo: repo,
+		webauth: wauth,
 	}
 }
 
@@ -44,6 +60,11 @@ func (s *UserService) DeleteUser(id uuid.UUID) error {
 }
 
 func (s *UserService) CreateUser(user repo.User) error {
+	temp, _ := s.repo.GetUserByEmail(user.Email)
+	if temp.ID != uuid.Nil{
+		return errors.New("email already exists")
+	}
+
 	hashedPassword, err := hasher.HashPassword(user.Password)
 	if err != nil {
 		return err

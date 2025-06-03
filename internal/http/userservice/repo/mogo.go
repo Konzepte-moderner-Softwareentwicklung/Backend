@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,6 +21,28 @@ type User struct {
 	Password       string    `bson:"password"       json:"-"`
 	PhoneNumber    string    `bson:"phoneNumber"    json:"phoneNumber"`
 	ProfilePicture string    `bson:"profilePicture" json:"profilePicture"`
+	SessionData webauthn.SessionData `bson:"sessionData"    json:"sessionData"`
+	Credentials    []webauthn.Credential `bson:"credentials"   json:"credentials"`
+}
+
+func (u User) WebAuthnID() []byte {
+	return u.ID[:]
+}
+
+func (u User) WebAuthnName() string {
+	return u.FirstName + " " + u.LastName
+}
+
+func (u User) WebAuthnDisplayName() string {
+	return u.FirstName
+}
+
+func (u User) WebAuthnCredentials() []webauthn.Credential {
+	return u.Credentials
+}
+
+func (u *User) AddCredential(cred *webauthn.Credential) {
+	u.Credentials = append(u.Credentials, *cred)
 }
 
 func (u *User) UnmarshalJSON(data []byte) error {

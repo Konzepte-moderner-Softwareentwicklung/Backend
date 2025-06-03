@@ -51,6 +51,60 @@ services:
     networks:
       - default
 
+  minio:
+    image: quay.io/minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: access-key-id
+      MINIO_ROOT_PASSWORD: secret-access-key
+    networks:
+      - default
+    command: server /data --console-address ":9001"
+
+  angebot-service:
+    depends_on:
+      - mongo
+    build:
+      context: .
+      dockerfile: cmd/angebot-service/Dockerfile
+    ports:
+      - "8084:8080"
+    networks:
+      - default
+
+  media-service:
+    depends_on:
+      - nats
+      - minio
+    build:
+      context: .
+      dockerfile: cmd/media-service/Dockerfile
+
+    ports:
+      - "8083:8080"
+    networks:
+      - default
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: cmd/frontend/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+
 volumes:
   mongo-data:
 
