@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
-	natsreciver "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/nats-reciver"
+	natsreciver "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/nats-receiver"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 )
 
