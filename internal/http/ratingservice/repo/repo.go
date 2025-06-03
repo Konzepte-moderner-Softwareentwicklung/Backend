@@ -3,7 +3,7 @@ package repo
 import "github.com/google/uuid"
 
 // Repo definiert die Schnittstelle für das Speichern und Abrufen von Fahrer- und Mitfahrerbewertungen
-type Repo interface {
+type RatingRepo interface {
 	// Fahrer-Bewertungen (Mitfahrer → Fahrer)
 	CreateDriverRating(rating DriverRating) error
 	GetDriverRatingByID(id uuid.UUID) (DriverRating, error)

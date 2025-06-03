@@ -139,3 +139,29 @@ func (r *MongoRepo) GetPassengerRatingsByTarget(targetID uuid.UUID) ([]Passenger
 	err = cursor.All(ctx, &ratings)
 	return ratings, err
 }
+
+func (r *MongoRepo) GetDriverRatingsByRater(raterID uuid.UUID) ([]DriverRating, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := r.driverRatingColl.Find(ctx, bson.M{"raterId": raterID})
+	if err != nil {
+		return nil, err
+	}
+	var ratings []DriverRating
+	err = cursor.All(ctx, &ratings)
+	return ratings, err
+}
+
+func (r *MongoRepo) GetPassengerRatingsByRater(raterID uuid.UUID) ([]PassengerRating, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := r.passengerRatingColl.Find(ctx, bson.M{"raterId": raterID})
+	if err != nil {
+		return nil, err
+	}
+	var ratings []PassengerRating
+	err = cursor.All(ctx, &ratings)
+	return ratings, err
+}
