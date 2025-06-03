@@ -87,6 +87,24 @@ services:
     networks:
       - default
 
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: cmd/frontend/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+
 volumes:
   mongo-data:
 
