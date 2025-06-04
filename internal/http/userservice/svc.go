@@ -19,7 +19,7 @@ func NewUserService(repo repo.Repo) *UserService {
 		&webauthn.Config{
 			RPID:                "localhost",
 			RPDisplayName:       "Example",
-			RPOrigins:           []string{"http://localhost"},
+			RPOrigins:           []string{"https://localhost"},
 		},
 	)
 	if err != nil {
