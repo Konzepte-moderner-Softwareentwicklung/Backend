@@ -21,6 +21,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	id := uuid.New()
 
 	user := repo.User{
+		Email:    uuid.New().String() + "@example.com",
 		ID:       id,
 		Password: "some password",
 	}
@@ -36,6 +37,7 @@ func TestUserService_GetUser(t *testing.T) {
 
 	password := "some password"
 	user := repo.User{
+		Email:    uuid.New().String() + "@example.com",
 		ID:       id,
 		Password: password,
 	}
@@ -68,6 +70,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 
 	password := "some password"
 	user := repo.User{
+		Email: uuid.New().String() + "@example.com",
 		ID:       id,
 		Password: password,
 	}
@@ -125,6 +128,7 @@ func TestUserService_DeleteUser(t *testing.T) {
 
 	password := "some password"
 	user := repo.User{
+		Email:    uuid.New().String() + "@example.com",
 		ID:       id,
 		Password: password,
 	}
