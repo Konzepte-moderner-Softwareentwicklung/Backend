@@ -9,5 +9,6 @@ RUN go build -o /bin/media-service cmd/media-service/main.go
 FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /bin/media-service .
+COPY .env .env
 EXPOSE 8080
 CMD ["./media-service", "-port", "8080", "-verbose"]
