@@ -96,6 +96,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
+      - ./cmd/frontend/static:/app/cmd/frontend/static
     ports:
       - "80:80"
       - "443:443"
