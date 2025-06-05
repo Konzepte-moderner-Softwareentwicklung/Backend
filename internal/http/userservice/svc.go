@@ -2,11 +2,14 @@ package userservice
 
 import (
 	"errors"
+	"os"
+	"strings"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 type UserService struct {
@@ -15,11 +18,22 @@ type UserService struct {
 }
 
 func NewUserService(repo repo.Repo) *UserService {
+	err := godotenv.Load()
+	if err != nil {
+		panic("failed to load .env file: " + err.Error())
+	}
+
+	// Load BASE_URL from environment variable or .env file if it exists
+	BASE_URL := os.Getenv("BASE_URL")
+	BASE_URL = strings.TrimSpace(BASE_URL)
+	BASE_URL = strings.TrimSuffix(BASE_URL, "/")
+	BASE_URL = strings.ReplaceAll(BASE_URL, "\n", "")
+
 	wauth, err := webauthn.New(
 		&webauthn.Config{
 			RPID:                "localhost",
 			RPDisplayName:       "Example",
-			RPOrigins:           []string{"http://localhost"},
+			RPOrigins:           []string{BASE_URL},
 		},
 	)
 	if err != nil {
