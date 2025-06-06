@@ -1,0 +1,21 @@
+name: Qodana
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  qodana:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Qodana Scan
+        uses: JetBrains/qodana-action@v2023.3.0
+        with:
+          project-dir: . 
+          args: --token ${{ secrets.QODANA_TOKEN }}
+          
