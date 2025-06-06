@@ -16,7 +16,6 @@ func NewRatingService(r repo.RatingRepo) *RatingService {
 	return &RatingService{repo: r}
 }
 
-// --- DRIVER RATINGS ---
 
 func (s *RatingService) CreateDriverRating(r repo.DriverRating) error {
 	if err := validateDriverRating(r); err != nil {
@@ -50,7 +49,6 @@ func (s *RatingService) GetDriverRatingsByRater(raterID uuid.UUID) ([]repo.Drive
 	return s.repo.GetDriverRatingsByRater(raterID)
 }
 
-// --- PASSENGER RATINGS ---
 
 func (s *RatingService) CreatePassengerRating(r repo.PassengerRating) error {
 	if err := validatePassengerRating(r); err != nil {
@@ -83,8 +81,6 @@ func (s *RatingService) GetPassengerRatingsByTarget(targetID uuid.UUID) ([]repo.
 func (s *RatingService) GetPassengerRatingsByRater(raterID uuid.UUID) ([]repo.PassengerRating, error) {
 	return s.repo.GetPassengerRatingsByRater(raterID)
 }
-
-// --- VALIDATION ---
 
 func validateDriverRating(r repo.DriverRating) error {
 	if !inRange(r.Punctuality) || !inRange(r.Comfort) || !inRange(r.AgreementsKept) || !inRange(r.CargoSafe) {

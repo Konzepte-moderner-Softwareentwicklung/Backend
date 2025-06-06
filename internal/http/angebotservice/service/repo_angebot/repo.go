@@ -12,6 +12,8 @@ type Location struct {
 	Latitude  float64 `json:"latitude"`
 }
 
+var emptyLocation = Location{}
+
 func (l *Location) IsInRadius(radius float64, location Location) bool {
 	if location.Longitude == 0 && location.Latitude == 0 {
 		return true
@@ -103,6 +105,9 @@ type Filter struct {
 	LocationTo       Location `json:"locationTo"`
 	LocationFromDiff float64  `json:"locationFromDiff"`
 	LocationToDiff   float64  `json:"locationToDiff"`
+	User 		uuid.UUID `json:"user"`
+	Creator          uuid.UUID `json:"creator"`
+	CurrentTime  time.Time `json:"currentTime"`
 }
 
 type Repo interface {

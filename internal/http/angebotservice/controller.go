@@ -47,7 +47,6 @@ func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Reque
 
 	var offer repoangebot.Offer
 	json.NewDecoder(r.Body).Decode(&offer)
-
 	offer.Creator = uid
 	imageURL := c.CreateMultiImageUrl()
 	offerId, err := c.service.CreateOffer(&offer, imageURL)
