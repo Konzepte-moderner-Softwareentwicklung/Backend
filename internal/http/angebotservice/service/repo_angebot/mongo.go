@@ -2,6 +2,7 @@ package repoangebot
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"github.com/google/uuid"
@@ -46,6 +47,8 @@ func (r *MongoRepo) GetOffer(id uuid.UUID) (*Offer, error) {
 
 func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 	var offers []*Offer
+
+	// Nur Angebote laden, die nicht belegt sind
 	cur, err := r.offerCollection.Find(context.Background(), bson.M{
 		"occupied": false,
 	})
@@ -53,29 +56,71 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 		return nil, err
 	}
 	defer cur.Close(context.Background())
+
 	for cur.Next(context.Background()) {
 		var offer Offer
 		if err := cur.Decode(&offer); err != nil {
 			return nil, err
 		}
+
+		// Titel-Filter
 		if !strings.HasPrefix(strings.ToLower(offer.Title), strings.ToLower(ft.NameStartsWith)) {
 			continue
 		}
+
+		// Transportgröße prüfen
 		if !offer.CanTransport.Fits(ft.SpaceNeeded.Items...) {
 			continue
 		}
+
+		// Sitzanzahl prüfen
 		if offer.CanTransport.Seats < ft.SpaceNeeded.Seats {
 			continue
 		}
 
-		if offer.LocationFrom.IsInRadius(ft.LocationFromDiff, ft.LocationFrom) && offer.LocationTo.IsInRadius(ft.LocationToDiff, ft.LocationTo) {
-			offers = append(offers, &offer)
+		// Creator-Filter
+		if ft.Creator != uuid.Nil && offer.Creator != ft.Creator {
+			continue
 		}
+
+		// Nutzerbezogene Filter (z. B. für eigene oder belegte Angebote)
+		if ft.User != uuid.Nil {
+			if !(ft.User == offer.OccupiedBy || ft.User == offer.Creator) {
+				log.Println("Skipping offer because user is not creator or occupier")
+				continue
+			}
+		}
+
+		// Zeitfilter: ft.CurrentTime muss innerhalb von Start–Ende liegen
+		if !ft.CurrentTime.IsZero() {
+			if ft.CurrentTime.Before(offer.StartDateTime) || ft.CurrentTime.After(offer.EndDateTime) {
+				log.Println("Skipping offer due to time range mismatch")
+				continue
+			}
+		}
+
+		// Location-Filter
+		if ft.LocationFrom != emptyLocation && !offer.LocationFrom.IsInRadius(ft.LocationFromDiff, ft.LocationFrom) {
+			continue
+		}
+		if ft.LocationTo != emptyLocation && !offer.LocationTo.IsInRadius(ft.LocationToDiff, ft.LocationTo) {
+			continue
+		}
+
+		// Angebot passt zu allen Filtern
+		offers = append(offers, &offer)
 	}
+
+	// Cursor-Fehler nach Iteration prüfen
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
 	return offers, nil
 }
 
-func (r *MongoRepo) OccupieOffer(offerId uuid.UUID, userId uuid.UUID) error {
+
+func (r *MongoRepo) OccupieOffer(offerId, userId uuid.UUID) error {
 	_, err := r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, bson.M{"$set": bson.M{"occupied": true, "occupiedBy": userId}})
 	if err != nil {
 		return err

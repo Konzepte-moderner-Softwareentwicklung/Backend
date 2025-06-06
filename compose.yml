@@ -77,6 +77,20 @@ services:
       - "8084:8080"
     networks:
       - default
+  
+  tracking-service:
+    depends_on:
+      - nats
+      - angebot-service
+      - user-service
+    build:
+      context: .
+      dockerfile: cmd/tracking-service/Dockerfile
+
+    ports:
+      - "8085:8080"
+    networks:
+      - default
 
   media-service:
     depends_on:

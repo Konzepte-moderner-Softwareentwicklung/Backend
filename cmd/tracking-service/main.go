@@ -1,0 +1,33 @@
+package main
+
+import (
+	"flag"
+	"os"
+
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/trackingservice"
+	"github.com/nats-io/nats.go"
+	"github.com/rs/zerolog"
+)
+
+var (
+	natsURL   string
+	offerURL  string
+	isVerbose = false
+)
+
+func main() {
+	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
+	flag.StringVar(&offerURL, "offer-url", "http://angebot-service:8080", "Offer service URL")
+	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
+	flag.Parse()
+
+	var loglevel zerolog.Level = zerolog.InfoLevel
+	if isVerbose {
+		loglevel = zerolog.DebugLevel
+	}
+	logger := zerolog.New(os.Stdout).Level(loglevel)
+
+	trackingservice.NewTrackingService(natsURL, offerURL).
+		WithLogger(logger).
+		Start()
+}

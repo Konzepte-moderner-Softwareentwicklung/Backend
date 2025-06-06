@@ -57,13 +57,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	gateway.New(natsURL, []byte(jwtKey), map[string]url.URL{
+	var gw = gateway.New(natsURL, []byte(jwtKey), map[string]url.URL{
 		"user":    *userServiceURL,
 		"media":   *mediaServiceURL,
 		"angebot": *angebotServiceURL,
-	}).
+	})
+	 
+	gw.
 		WithLogger(logger).
 		WithLogRequest().
 		WithVersion("1.0.0").
-		WithPort(port).ListenAndServe()
+		WithPort(port)
+	defer gw.Close()
+	gw.ListenAndServe()
 }
