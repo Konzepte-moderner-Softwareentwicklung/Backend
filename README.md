@@ -1,6 +1,6 @@
 [![SonarQube](https://scm.thm.de/sonar/api/project_badges/measure?project=KMS_backend&metric=alert_status)](https://scm.thm.de/sonar/dashboard?id=KMS_backend)
 
-# ![Logo](https://github.com/Konzepte-moderner-Softwareentwicklung/Backend/blob/48d40c361547b776b036ce7300b25f7c25670ed2/readme-content/Logo.png?raw=true)
+# ![Logo](https://github.com/Konzepte-moderner-Softwareentwicklung/Backend/blob/f27c180dcd0b50ee5533e5bdb1ae97030adead33/readme-content/Logo-smaller.png?raw=true)
 # Microservices Backend (Entwicklungsumgebung)
 
 ## Übersicht
