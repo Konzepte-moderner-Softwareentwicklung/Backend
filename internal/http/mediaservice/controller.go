@@ -33,9 +33,11 @@ func New(svc *service.MediaService) *MediaController {
 }
 
 func (mc *MediaController) setupRoutes() {
+	// for example for angebot bilder
 	mc.WithHandlerFunc("/multi/{id}", mc.GetCompoundLinks, http.MethodGet)
 	mc.WithHandlerFunc("/multi/{id}", mc.UploadToCompoundLinks, http.MethodPost)
 
+	// fuer einzelne bilder wie profilbilder oder banner
 	mc.WithHandlerFunc("/image", mc.handleIndex, http.MethodGet)
 	mc.WithHandlerFunc("/image", mc.UploadPicture, http.MethodPost)
 	mc.WithHandlerFunc("/image/{id}", mc.DownloadPicture, http.MethodGet)

@@ -21,12 +21,14 @@ var (
 	accessKeyID     string
 	secretAccessKey string
 	mongoUrl        string
+	jwtSecret       string
 )
 
 func main() {
 	flag.IntVar(&port, "port", DEFAULT_PORT, "Port to listen on")
 	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
 	flag.StringVar(&mongoUrl, "mongo-url", "mongodb://mongo:27017", "MongoDB URL")
+	flag.StringVar(&jwtSecret, "jwt", "some jwt key", "JWT Secret")
 	flag.Parse()
 
 	var loglevel zerolog.Level = zerolog.InfoLevel
@@ -47,7 +49,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	angebotservice.New(*svc).
+	angebotservice.New(*svc, []byte(jwtSecret)).
 		WithPort(port).
 		WithLogger(logger).
 		WithLogRequest().

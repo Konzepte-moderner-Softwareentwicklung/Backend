@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/jwt"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	natsreciver "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/nats-receiver"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
@@ -14,6 +15,7 @@ type Service struct {
 	*server.Server
 	NR *natsreciver.Receiver
 	*auth.AuthMiddleware
+	*jwt.Decoder
 }
 
 func New(natsurl string, jwtSecret []byte, proxyEndpoints map[string]url.URL) *Service {
@@ -25,6 +27,7 @@ func New(natsurl string, jwtSecret []byte, proxyEndpoints map[string]url.URL) *S
 		server.NewServer(),
 		reciver,
 		auth.NewAuthMiddleware(jwtSecret),
+		jwt.NewDecoder(jwtSecret),
 	}
 	setupRoutes(svr)
 	setupProxy(svr, proxyEndpoints)
@@ -36,7 +39,7 @@ func (s *Service) Close() error {
 	return s.NR.Close()
 }
 
-func (s *Service) LogNats(){
+func (s *Service) LogNats() {
 	subject := "*"
 	msg := make(chan []byte)
 

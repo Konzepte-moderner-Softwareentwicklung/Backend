@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/nats-io/nats.go"
 )
@@ -24,14 +23,13 @@ var upgrader = websocket.Upgrader{
 }
 
 func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
-	s.GetLogger().Info().Msg("WebSocket connection requested")
-	id := r.Header.Get(UserIdHeader)
-	uid, err := uuid.Parse(id)
+	token := r.URL.Query().Get("token")
+	id, err := s.DecodeUUID(token)
 	if err != nil {
-		s.Error(w, "Invalid user ID", http.StatusBadRequest)
+		s.Error(w, "Invalid token", http.StatusBadRequest)
 		return
 	}
-
+	s.GetLogger().Info().Str("user_id", id.String()).Msg("WebSocket connection requested")
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -40,7 +38,7 @@ func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	subject := fmt.Sprintf("user.%s", uid.String())
+	subject := fmt.Sprintf("user.%s", id.String())
 
 	writeChan := make(chan []byte)
 	done := make(chan struct{})
@@ -66,7 +64,7 @@ func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
 					close(done)
 					return
 				}
-				s.GetLogger().Debug().Msgf("Sent to [%s], message: %s", uid.String(), msg)
+				s.GetLogger().Debug().Msgf("Sent to [%s], message: %s", id.String(), msg)
 			case <-done:
 				return
 			}
@@ -80,7 +78,7 @@ func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
 			close(done)
 			break
 		} else {
-			s.GetLogger().Debug().Msgf("Received from [%s], message: %s", uid.String(),data)
+			s.GetLogger().Debug().Msgf("Received from [%s], message: %s", id.String(), data)
 		}
 	}
 }
@@ -89,13 +87,14 @@ type TrackingRequest struct {
 	Location repoangebot.Location `json:"location"`
 }
 
-
 func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {
-	id := r.Header.Get(UserIdHeader)
-	if id == "" {
-		s.Error(w, "User ID is required", http.StatusBadRequest)
+	token := r.URL.Query().Get("token")
+	id, err := s.DecodeUUID(token)
+	if err != nil {
+		s.Error(w, "Invalid token", http.StatusBadRequest)
 		return
 	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		s.Error(w, "WebSocket upgrade failed", http.StatusInternalServerError)
@@ -106,7 +105,7 @@ func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {
 	subject := fmt.Sprintf("tracking.user.%s", id)
 	var trackingRequest TrackingRequest
 
-	for  {
+	for {
 		err := conn.ReadJSON(&trackingRequest)
 		if err != nil {
 			s.GetLogger().Err(err).Msg("WebSocket read error or closed")
@@ -114,8 +113,8 @@ func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {
 		}
 		// Ensure that the request is valid
 		// TODO: Check if the location is valid
-		
-		jsonData,err := json.Marshal(trackingRequest)
+
+		jsonData, err := json.Marshal(trackingRequest)
 		if err != nil {
 			s.GetLogger().Err(err).Msg("Failed to marshal tracking request")
 			s.Error(w, "Failed to marshal tracking request", http.StatusInternalServerError)
@@ -128,6 +127,6 @@ func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {
 			s.Error(w, "Failed to publish tracking request", http.StatusInternalServerError)
 			return
 		}
-		
+
 	}
 }

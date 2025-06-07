@@ -1,5 +1,0 @@
-version: "1.0"
-linter: jetbrains/qodana-go
-# or jetbrains/qodana-js, jetbrains/qodana-python, etc.
-include:
-  - name: All

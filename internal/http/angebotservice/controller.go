@@ -7,6 +7,7 @@ import (
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service"
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/mediaservice/msclient"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -20,21 +21,23 @@ type OfferController struct {
 	*server.Server
 	*msclient.Client
 	service service.Service
+	*auth.AuthMiddleware
 }
 
-func New(svc service.Service) *OfferController {
+func New(svc service.Service, secret []byte) *OfferController {
 	svr := &OfferController{
-		Server:  server.NewServer(),
-		service: svc,
+		Server:         server.NewServer(),
+		service:        svc,
+		AuthMiddleware: auth.NewAuthMiddleware(secret),
 	}
 	svr.setupRoutes()
 	return svr
 }
 
 func (c *OfferController) setupRoutes() {
-	c.WithHandlerFunc("/", c.handleCreateOffer, http.MethodPost)
+	c.WithHandlerFunc("/", c.EnsureJWT(c.handleCreateOffer), http.MethodPost)
 	c.WithHandlerFunc("/{id}", c.handleGetOffer, http.MethodGet)
-	c.WithHandlerFunc("/", c.handleGetOfferByFilter, http.MethodGet)
+	c.WithHandlerFunc("/filter", c.handleGetOfferByFilter, http.MethodPost)
 }
 
 func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Request) {
