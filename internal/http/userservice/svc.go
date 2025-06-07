@@ -13,14 +13,14 @@ import (
 )
 
 type UserService struct {
-	repo repo.Repo
+	repo    repo.Repo
 	webauth *webauthn.WebAuthn
 }
 
 func NewUserService(repo repo.Repo) *UserService {
 	err := godotenv.Load()
 	if err != nil {
-		panic("failed to load .env file: " + err.Error())
+		os.Stdout.WriteString("failed to load .env file: " + err.Error())
 	}
 
 	// Load BASE_URL from environment variable or .env file if it exists
@@ -31,9 +31,9 @@ func NewUserService(repo repo.Repo) *UserService {
 
 	wauth, err := webauthn.New(
 		&webauthn.Config{
-			RPID:                "localhost",
-			RPDisplayName:       "Example",
-			RPOrigins:           []string{BASE_URL},
+			RPID:          "localhost",
+			RPDisplayName: "Example",
+			RPOrigins:     []string{BASE_URL},
 		},
 	)
 	if err != nil {
@@ -41,7 +41,7 @@ func NewUserService(repo repo.Repo) *UserService {
 	}
 
 	return &UserService{
-		repo: repo,
+		repo:    repo,
 		webauth: wauth,
 	}
 }
@@ -75,7 +75,7 @@ func (s *UserService) DeleteUser(id uuid.UUID) error {
 
 func (s *UserService) CreateUser(user repo.User) error {
 	temp, _ := s.repo.GetUserByEmail(user.Email)
-	if temp.ID != uuid.Nil{
+	if temp.ID != uuid.Nil {
 		return errors.New("email already exists")
 	}
 
