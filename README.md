@@ -1,11 +1,11 @@
 [![SonarQube](https://scm.thm.de/sonar/api/project_badges/measure?project=KMS_backend&metric=alert_status)](https://scm.thm.de/sonar/dashboard?id=KMS_backend)
 
-# ![Logo](readme/logo.png)  
+# ![Logo](readme-content/logo.png)
 # Microservices Backend (Entwicklungsumgebung)
 
 ## Übersicht
 
-Dieses Backend stellt eine Microservices-Architektur bereit, die mittels Docker Compose orchestriert wird.  
+Dieses Backend stellt eine Microservices-Architektur bereit, die mittels Docker Compose orchestriert wird.
 Die Architektur umfasst folgende Services:
 
 - **NATS** (Message Broker mit JetStream)
@@ -79,7 +79,7 @@ Die Architektur umfasst folgende Services:
 
 ## Nutzung
 
-1. Repository klonen  
+1. Repository klonen
    ```bash
    git clone https://github.com/Konzepte-moderner-Softwareentwicklung/Backend.git
    cd Backend
