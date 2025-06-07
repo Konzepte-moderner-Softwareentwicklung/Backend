@@ -46,4 +46,4 @@ jobs:
       - name: Scan container
         run: |
           sonar-scanner -Dsonar.projectKey=kmsbackend
-          -Dsonar.sources=. -Dsonar.host.url=https://scm.thm.de/sonar -Dsonar.login=${{ secrets.backendscq }}
+          -Dsonar.sources=. -Dsonar.host.url=https://scm.thm.de/sonar -Dsonar.login=${{ secrets.SCQ }}
