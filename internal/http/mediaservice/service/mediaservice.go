@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -142,19 +140,16 @@ func (m *MediaService) GetMultiPicture(ctx context.Context, id uuid.UUID) ([]str
 	var pictureNames []string
 	for obj := range objectCh {
 		if obj.Err != nil {
-			log.Println("Error listing object:", obj.Err)
 			continue
 		}
 
 		// Get object metadata
 		info, err := m.client.StatObject(ctx, PICTURE_BUCKET_NAME, obj.Key, minio.StatObjectOptions{})
 		if err != nil {
-			log.Println("Error statting object:", err)
 			continue
 		}
 
 		meta := info.UserMetadata
-		os.Stdout.WriteString(fmt.Sprintf("%v", meta))
 		if compoundID, ok := meta["Compound-Id"]; ok && compoundID == id.String() {
 			pictureNames = append(pictureNames, obj.Key)
 		}

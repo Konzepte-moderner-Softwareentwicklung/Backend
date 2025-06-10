@@ -2,7 +2,6 @@ package repoangebot
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/google/uuid"
@@ -86,7 +85,6 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 		// Nutzerbezogene Filter (z. B. für eigene oder belegte Angebote)
 		if ft.User != uuid.Nil {
 			if !(ft.User == offer.OccupiedBy || ft.User == offer.Creator) {
-				log.Println("Skipping offer because user is not creator or occupier")
 				continue
 			}
 		}
@@ -94,7 +92,6 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 		// Zeitfilter: ft.CurrentTime muss innerhalb von Start–Ende liegen
 		if !ft.CurrentTime.IsZero() {
 			if ft.CurrentTime.Before(offer.StartDateTime) || ft.CurrentTime.After(offer.EndDateTime) {
-				log.Println("Skipping offer due to time range mismatch")
 				continue
 			}
 		}
@@ -118,7 +115,6 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 
 	return offers, nil
 }
-
 
 func (r *MongoRepo) OccupieOffer(offerId, userId uuid.UUID) error {
 	_, err := r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, bson.M{"$set": bson.M{"occupied": true, "occupiedBy": userId}})

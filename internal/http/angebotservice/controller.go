@@ -35,9 +35,9 @@ func New(svc service.Service, secret []byte) *OfferController {
 }
 
 func (c *OfferController) setupRoutes() {
+	c.WithHandlerFunc("/filter", c.handleGetOfferByFilter, http.MethodPost)
 	c.WithHandlerFunc("/", c.EnsureJWT(c.handleCreateOffer), http.MethodPost)
 	c.WithHandlerFunc("/{id}", c.handleGetOffer, http.MethodGet)
-	c.WithHandlerFunc("/filter", c.handleGetOfferByFilter, http.MethodPost)
 }
 
 func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Request) {

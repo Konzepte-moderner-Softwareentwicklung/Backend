@@ -59,4 +59,5 @@ func setupRoutes(s *Service) {
 	s.WithHandlerFunc("/health", s.HealthCheck, http.MethodGet)
 	s.WithHandlerFunc("/ws", s.WSHandler, http.MethodGet)
 	s.WithHandlerFunc("/tracking", s.HandleTracking, http.MethodGet)
+	s.WithHandlerFunc("/ws/chat/{chatId}", s.HandleChatWS, http.MethodGet)
 }

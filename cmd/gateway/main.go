@@ -21,6 +21,7 @@ var (
 	userService    string
 	mediaService   string
 	angebotService string
+	chatService    string
 	isVerbose      bool
 )
 
@@ -31,6 +32,7 @@ func main() {
 	flag.StringVar(&userService, "user-service", "http://user-service:8080", "User service URL")
 	flag.StringVar(&mediaService, "media-service", "http://media-service:8080", "Media service URL")
 	flag.StringVar(&angebotService, "angebot-service", "http://angebot-service:8080", "Angebot service URL")
+	flag.StringVar(&chatService, "chat-service", "http://chat-service:8080", "Chat service URL")
 	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
 	flag.Parse()
 
@@ -56,13 +58,19 @@ func main() {
 		logger.Fatal().Err(err).Msg("Failed to parse angebot service URL")
 		os.Exit(1)
 	}
+	chatServiceURL, err := url.Parse(chatService)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to parse chat service URL")
+		os.Exit(1)
+	}
 
 	var gw = gateway.New(natsURL, []byte(jwtKey), map[string]url.URL{
 		"user":    *userServiceURL,
 		"media":   *mediaServiceURL,
 		"angebot": *angebotServiceURL,
+		"chat":    *chatServiceURL,
 	})
-	 
+
 	gw.
 		WithLogger(logger).
 		WithLogRequest().
