@@ -12,8 +12,8 @@ import (
 )
 
 type TrackingService struct {
-	queue *nats.Conn
-	logger zerolog.Logger
+	queue       *nats.Conn
+	logger      zerolog.Logger
 	offerClient *offerclient.OfferClient
 }
 
@@ -23,8 +23,8 @@ func NewTrackingService(natsURL string, offerURL string) *TrackingService {
 		panic(err)
 	}
 	svc := &TrackingService{
-		queue: queue,
-		logger: zerolog.New(os.Stdout),
+		queue:       queue,
+		logger:      zerolog.New(os.Stdout),
 		offerClient: offerclient.NewOfferClient(offerURL),
 	}
 	return svc
@@ -45,9 +45,8 @@ func (s *TrackingService) Start() {
 			return
 		}
 		offers, err := s.offerClient.GetOffersByFilter(repoangebot.Filter{
-			User: userID,
+			User:        userID,
 			CurrentTime: time.Now(),
-
 		})
 		if err != nil {
 			s.logger.Error().Err(err).Msg("Failed to get offers by filter")
@@ -60,7 +59,7 @@ func (s *TrackingService) Start() {
 		offer := offers[0]
 
 		s.queue.Publish("user."+offer.OccupiedBy.String(), msg.Data)
-		s.logger.Info().Msgf("Published tracking request for user %s to offer %s", userID, offer.ID)
+		s.logger.Info().Msgf("Published tracking request for user %s to offer %s, %s", userID, offer.ID, string(msg.Data))
 	})
 	select {} // Block forever
 }

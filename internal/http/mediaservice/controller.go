@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/mediaservice/service"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
@@ -112,7 +111,6 @@ func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Reque
 
 	links, err := mc.mediaservice.GetMultiPicture(context.Background(), uid)
 	for i := range links {
-		os.Stdout.WriteString(fmt.Sprintln(r.Header))
 		links[i] = fmt.Sprintf("/media/image/%s", links[i])
 	}
 	if err != nil {

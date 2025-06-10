@@ -17,15 +17,14 @@ func NewOfferClient(url string) *OfferClient {
 }
 
 func (c *OfferClient) GetOffersByFilter(filter repoangebot.Filter) ([]*repoangebot.Offer, error) {
-	byteJson, err :=json.Marshal(filter)
+	byteJson, err := json.Marshal(filter)
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodGet, string(*c), bytes.NewBuffer(byteJson))
+	req, err := http.NewRequest(http.MethodPost, string(*c)+"/filter", bytes.NewBuffer(byteJson))
 	if err != nil {
 		return nil, err
 	}
-	
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 
@@ -43,4 +42,3 @@ func (c *OfferClient) GetOffersByFilter(filter repoangebot.Filter) ([]*repoangeb
 	}
 	return offers, nil
 }
-

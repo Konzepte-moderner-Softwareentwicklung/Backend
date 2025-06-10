@@ -1,9 +1,7 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/jwt"
 )
@@ -22,7 +20,6 @@ func NewAuthMiddleware(secret []byte) *AuthMiddleware {
 func (m *AuthMiddleware) EnsureJWT(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		os.Stdout.WriteString(fmt.Sprintln(r.Header))
 		if token == "" {
 			http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
 			return
