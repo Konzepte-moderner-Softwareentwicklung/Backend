@@ -129,7 +129,7 @@ func (s *Service) HandleChatWS(w http.ResponseWriter, r *http.Request) {
 }
 
 type TrackingRequest struct {
-	Location repoangebot.Location `json:"location"`
+	Location repoangebot.Location `json:"location" bson:"location"`
 }
 
 func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {

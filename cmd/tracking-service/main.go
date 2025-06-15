@@ -13,12 +13,14 @@ var (
 	natsURL   string
 	offerURL  string
 	isVerbose = false
+	mongoURL  string
 )
 
 func main() {
 	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
 	flag.StringVar(&offerURL, "offer-url", "http://angebot-service:8080", "Offer service URL")
 	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
+	flag.StringVar(&mongoURL, "mongo-url", "mongodb://localhost:27017", "MongoDB URL")
 	flag.Parse()
 
 	var loglevel zerolog.Level = zerolog.InfoLevel
@@ -27,7 +29,7 @@ func main() {
 	}
 	logger := zerolog.New(os.Stdout).Level(loglevel)
 
-	trackingservice.NewTrackingService(natsURL, offerURL).
+	trackingservice.NewTrackingService(natsURL, offerURL, mongoURL).
 		WithLogger(logger).
 		Start()
 }

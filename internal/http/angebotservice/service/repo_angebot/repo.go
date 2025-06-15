@@ -8,8 +8,8 @@ import (
 )
 
 type Location struct {
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude" bson:"longitude"`
+	Latitude  float64 `json:"latitude" bson:"latitude"`
 }
 
 var emptyLocation = Location{}
@@ -99,15 +99,15 @@ type Offer struct {
 }
 
 type Filter struct {
-	NameStartsWith   string   `json:"nameStartsWith"`
-	SpaceNeeded      Space    `json:"spaceNeeded"`
-	LocationFrom     Location `json:"locationFrom"`
-	LocationTo       Location `json:"locationTo"`
-	LocationFromDiff float64  `json:"locationFromDiff"`
-	LocationToDiff   float64  `json:"locationToDiff"`
-	User 		uuid.UUID `json:"user"`
+	NameStartsWith   string    `json:"nameStartsWith"`
+	SpaceNeeded      Space     `json:"spaceNeeded"`
+	LocationFrom     Location  `json:"locationFrom"`
+	LocationTo       Location  `json:"locationTo"`
+	LocationFromDiff float64   `json:"locationFromDiff"`
+	LocationToDiff   float64   `json:"locationToDiff"`
+	User             uuid.UUID `json:"user"`
 	Creator          uuid.UUID `json:"creator"`
-	CurrentTime  time.Time `json:"currentTime"`
+	CurrentTime      time.Time `json:"currentTime"`
 }
 
 type Repo interface {
