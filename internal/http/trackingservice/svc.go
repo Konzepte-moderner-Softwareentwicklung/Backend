@@ -1,10 +1,13 @@
 package trackingservice
 
 import (
+	"encoding/json"
 	"os"
 	"time"
 
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/trackingservice/repo"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/offerclient"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
@@ -15,9 +18,10 @@ type TrackingService struct {
 	queue       *nats.Conn
 	logger      zerolog.Logger
 	offerClient *offerclient.OfferClient
+	mongoClient repo.TrackingRepo
 }
 
-func NewTrackingService(natsURL string, offerURL string) *TrackingService {
+func NewTrackingService(natsURL string, offerURL string, mongoURL string) *TrackingService {
 	queue, err := nats.Connect(natsURL)
 	if err != nil {
 		panic(err)
@@ -26,6 +30,7 @@ func NewTrackingService(natsURL string, offerURL string) *TrackingService {
 		queue:       queue,
 		logger:      zerolog.New(os.Stdout),
 		offerClient: offerclient.NewOfferClient(offerURL),
+		mongoClient: repo.NewMongoTrackingRepo(mongoURL),
 	}
 	return svc
 }
@@ -57,6 +62,22 @@ func (s *TrackingService) Start() {
 			return
 		}
 		offer := offers[0]
+
+		var trackingRequest gateway.TrackingRequest
+		err = json.Unmarshal(msg.Data, &trackingRequest)
+
+		if err != nil {
+			s.logger.Error().Err(err).Msg("Failed to unmarshal tracking request")
+			return
+		}
+
+		if err := s.mongoClient.SaveTracking(repo.Tracking{
+			UserID:   userID,
+			Tracking: trackingRequest,
+		}); err != nil {
+			s.logger.Error().Err(err).Msg("Failed to save tracking")
+			return
+		}
 
 		s.queue.Publish("user."+offer.OccupiedBy.String(), msg.Data)
 		s.logger.Info().Msgf("Published tracking request for user %s to offer %s, %s", userID, offer.ID, string(msg.Data))
