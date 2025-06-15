@@ -20,7 +20,7 @@ func main() {
 	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
 	flag.StringVar(&offerURL, "offer-url", "http://angebot-service:8080", "Offer service URL")
 	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
-	flag.StringVar(&mongoURL, "mongo-url", "mongodb://localhost:27017", "MongoDB URL")
+	flag.StringVar(&mongoURL, "mongo-url", "mongodb://mongo:27017", "MongoDB URL")
 	flag.Parse()
 
 	var loglevel zerolog.Level = zerolog.InfoLevel
