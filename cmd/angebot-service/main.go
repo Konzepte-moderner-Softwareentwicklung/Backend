@@ -7,6 +7,7 @@ import (
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service"
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/rs/zerolog"
 )
 
@@ -35,7 +36,7 @@ func main() {
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}
-	logger := zerolog.New(os.Stdout).Level(loglevel)
+	logger := logstash.NewZerologLogger("angebot-service", loglevel)
 
 	repo, err := repoangebot.NewMongoRepo(mongoUrl)
 	if err != nil {

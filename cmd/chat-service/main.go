@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service/repo"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/rs/zerolog"
 )
 
@@ -32,7 +32,7 @@ func main() {
 		level = zerolog.DebugLevel
 	}
 
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger().Level(level)
+	logger := logstash.NewZerologLogger("chat-service", level)
 	svc := chatservice.New([]byte(secretString), repo, natsUrl)
 	svc.
 		WithPort(port).
