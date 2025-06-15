@@ -29,6 +29,7 @@ services:
   chat-service:
     depends_on:
       - nats
+      - logstash
     build:
       context: .
       dockerfile: cmd/chat-service/Dockerfile
@@ -49,6 +50,7 @@ services:
   gateway:
     depends_on:
       - nats
+      - logstash
     build:
       context: .
       dockerfile: cmd/gateway/Dockerfile
@@ -60,6 +62,7 @@ services:
   user-service:
     depends_on:
       - nats
+      - logstash
       - mongo
     build:
       context: .
@@ -85,6 +88,7 @@ services:
   angebot-service:
     depends_on:
       - mongo
+      - logstash
     build:
       context: .
       dockerfile: cmd/angebot-service/Dockerfile
@@ -95,6 +99,7 @@ services:
 
   tracking-service:
     depends_on:
+      - logstash
       - nats
       - angebot-service
       - user-service
@@ -109,6 +114,7 @@ services:
 
   media-service:
     depends_on:
+      - logstash
       - nats
       - minio
     build:
@@ -141,6 +147,42 @@ services:
     networks:
       - default
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./logging_data:/usr/share/elasticsearch/data
+    networks:
+      - default
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - default
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    volumes:
+      - ./logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5000:5000"
+    depends_on:
+      - elasticsearch
+    networks:
+      - default
+    environment:
+      - LS_JAVA_OPTS=-Xms1g -Xmx1g
 volumes:
   mongo-data:
 

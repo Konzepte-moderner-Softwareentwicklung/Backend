@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/mediaservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/mediaservice/service"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/rs/zerolog"
 )
 
@@ -33,7 +33,7 @@ func main() {
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}
-	logger := zerolog.New(os.Stdout).Level(loglevel)
+	logger := logstash.NewZerologLogger("media-service", loglevel)
 
 	minio, err := service.New(minioUrl, accessKeyID, secretAccessKey)
 	if err != nil {

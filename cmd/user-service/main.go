@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 )
@@ -38,7 +38,7 @@ func main() {
 	}
 
 	// Initialize logger
-	logger := zerolog.New(os.Stdout).Level(loglevel)
+	logger := logstash.NewZerologLogger("user-service", loglevel)
 	repository, err := repo.NewMongoRepo(mongoURL)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to create MongoDB repository")

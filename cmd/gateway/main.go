@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 )
@@ -40,7 +41,7 @@ func main() {
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}
-	logger := zerolog.New(os.Stdout).Level(loglevel)
+	logger := logstash.NewZerologLogger("gateway", loglevel)
 
 	// parse URLs
 	userServiceURL, err := url.Parse(userService)

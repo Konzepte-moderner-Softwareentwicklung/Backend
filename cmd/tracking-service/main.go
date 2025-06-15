@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/trackingservice"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 )
@@ -27,7 +27,7 @@ func main() {
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}
-	logger := zerolog.New(os.Stdout).Level(loglevel)
+	logger := logstash.NewZerologLogger("tracking-service", loglevel)
 
 	trackingservice.NewTrackingService(natsURL, offerURL, mongoURL).
 		WithLogger(logger).
