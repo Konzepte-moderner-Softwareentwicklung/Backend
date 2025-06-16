@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"log"
 	"sort"
 
 	"github.com/google/uuid"
@@ -30,7 +31,11 @@ func (r *MongoRepo) GetHistory(id uuid.UUID) ([]Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(context.Background())
+	defer func() {
+		if err := cursor.Close(context.Background()); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	var messages []Message
 	for cursor.Next(context.Background()) {

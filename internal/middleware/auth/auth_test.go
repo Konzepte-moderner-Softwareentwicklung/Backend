@@ -35,7 +35,7 @@ func TestEnsureJWT(t *testing.T) {
 			name:       "Invalid Token",
 			authHeader: "invalid-token",
 			mockDecodeFunc: func(token string) (uuid.UUID, error) {
-				return uuid.Nil, jwt.ERR_INVALID_TOKEN
+				return uuid.Nil, jwt.ErrInvalidToken
 			},
 			wantStatus:     http.StatusUnauthorized,
 			wantUserHeader: false,
@@ -44,7 +44,7 @@ func TestEnsureJWT(t *testing.T) {
 			name:       "Expired Token",
 			authHeader: "expired-token",
 			mockDecodeFunc: func(token string) (uuid.UUID, error) {
-				return uuid.Nil, jwt.ERR_INVALID_CLAIMS
+				return uuid.Nil, jwt.ErrInvalidClaims
 			},
 			wantStatus:     http.StatusUnauthorized,
 			wantUserHeader: false,

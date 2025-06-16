@@ -32,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	// Set log level based on verbose flag
-	var loglevel zerolog.Level = zerolog.ErrorLevel
+	var loglevel = zerolog.ErrorLevel
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}

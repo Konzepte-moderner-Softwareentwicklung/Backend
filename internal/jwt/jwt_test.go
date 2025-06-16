@@ -9,7 +9,13 @@ import (
 
 func TestEncode(t *testing.T) {
 	id := uuid.New()
-	NewEncoder([]byte("some secret")).EncodeUUID(id, time.Hour)
+	token, err := NewEncoder([]byte("some secret")).EncodeUUID(id, time.Hour)
+	if err != nil {
+		t.Errorf("Failed to encode token: %v", err)
+	}
+	if token == "" {
+		t.Errorf("Token is empty")
+	}
 }
 
 func TestDecode(t *testing.T) {

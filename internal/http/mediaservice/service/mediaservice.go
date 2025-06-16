@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -87,7 +88,11 @@ func (m *MediaService) GetPicture(ctx context.Context, pictureName string) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("image not found")
 	}
-	defer object.Close()
+	defer func() {
+		if err := object.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	var buf bytes.Buffer
 	if _, err := buf.ReadFrom(object); err != nil {

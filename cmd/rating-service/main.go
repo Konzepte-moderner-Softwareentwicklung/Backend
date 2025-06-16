@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/nats-io/nats.go"
 	"os"
+
+	"github.com/nats-io/nats.go"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice/repo"
@@ -32,7 +33,7 @@ func main() {
 	flag.Parse()
 
 	// Set log level based on verbose flag
-	var loglevel zerolog.Level = zerolog.ErrorLevel
+	var loglevel = zerolog.ErrorLevel
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}

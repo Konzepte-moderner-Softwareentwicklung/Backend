@@ -25,7 +25,9 @@ func (l *Location) IsInRadius(radius float64, location Location) bool {
 }
 
 func (l *Location) DistanceTo(location Location) float64 {
-	return math.Sqrt(math.Pow(l.Longitude-location.Longitude, 2) + math.Pow(l.Latitude-location.Latitude, 2))
+	dx := l.Longitude - location.Longitude
+	dy := l.Latitude - location.Latitude
+	return math.Sqrt(dx*dx + dy*dy)
 }
 
 func (s *Size) Volume() float64 {
@@ -51,11 +53,7 @@ func (s *Space) Fits(items ...Item) bool {
 		totalNewVolume += item.Volume()
 	}
 
-	if totalNewVolume > s.TotalVolume() {
-		return false
-	}
-
-	return true
+	return totalNewVolume <= s.TotalVolume()
 }
 
 type Space struct {

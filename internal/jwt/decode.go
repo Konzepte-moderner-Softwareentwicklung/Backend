@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	ERR_INVALID_TOKEN  = errors.New("invalid token")
-	ERR_INVALID_CLAIMS = errors.New("invalid claims")
-	ERR_INVALID_UUID   = errors.New("invalid uuid")
+	ErrInvalidToken  = errors.New("invalid token")
+	ErrInvalidClaims = errors.New("invalid claims")
+	ErrInvalidUUID   = errors.New("invalid uuid")
 )
 
 type Decodable interface {
@@ -38,23 +38,23 @@ func (d *Decoder) DecodeUUID(tokenString string) (uuid.UUID, error) {
 
 	// Wenn Parsen fehlgeschlagen ist oder Token ungültig ist
 	if err != nil || !token.Valid {
-		return uuid.UUID{}, ERR_INVALID_TOKEN
+		return uuid.UUID{}, ErrInvalidToken
 	}
 
 	// Claims extrahieren
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return uuid.UUID{}, ERR_INVALID_CLAIMS
+		return uuid.UUID{}, ErrInvalidClaims
 	}
 
 	id, ok := claims["uuid"].(string)
 	if !ok {
-		return uuid.UUID{}, ERR_INVALID_CLAIMS
+		return uuid.UUID{}, ErrInvalidClaims
 	}
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		return uuid.UUID{}, ERR_INVALID_UUID
+		return uuid.UUID{}, ErrInvalidUUID
 	}
 
 	return uid, nil

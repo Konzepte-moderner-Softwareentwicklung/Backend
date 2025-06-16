@@ -2,12 +2,13 @@ package ratingservice
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice/repo"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 type RatingController struct {
@@ -58,7 +59,10 @@ func (c *RatingController) CreateDriverRating(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"id": rating.ID.String()})
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": rating.ID.String()}); err != nil {
+		c.Error(w, "Fehler beim Schreiben der Antwort", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *RatingController) GetDriverRatingByID(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +78,10 @@ func (c *RatingController) GetDriverRatingByID(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	json.NewEncoder(w).Encode(rating)
+	if err := json.NewEncoder(w).Encode(rating); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertung", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *RatingController) GetDriverRatingsByTarget(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +97,10 @@ func (c *RatingController) GetDriverRatingsByTarget(w http.ResponseWriter, r *ht
 		return
 	}
 
-	json.NewEncoder(w).Encode(ratings)
+	if err := json.NewEncoder(w).Encode(ratings); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertungen", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *RatingController) GetDriverRatingsByRater(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +116,10 @@ func (c *RatingController) GetDriverRatingsByRater(w http.ResponseWriter, r *htt
 		return
 	}
 
-	json.NewEncoder(w).Encode(ratings)
+	if err := json.NewEncoder(w).Encode(ratings); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertungen", http.StatusInternalServerError)
+		return
+	}
 }
 
 // --- PASSENGER RATINGS ---
@@ -124,7 +137,10 @@ func (c *RatingController) CreatePassengerRating(w http.ResponseWriter, r *http.
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"id": rating.ID.String()})
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": rating.ID.String()}); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertungs-ID", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *RatingController) GetPassengerRatingByID(w http.ResponseWriter, r *http.Request) {
@@ -140,7 +156,10 @@ func (c *RatingController) GetPassengerRatingByID(w http.ResponseWriter, r *http
 		return
 	}
 
-	json.NewEncoder(w).Encode(rating)
+	if err := json.NewEncoder(w).Encode(rating); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertung", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *RatingController) GetPassengerRatingsByTarget(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +175,10 @@ func (c *RatingController) GetPassengerRatingsByTarget(w http.ResponseWriter, r 
 		return
 	}
 
-	json.NewEncoder(w).Encode(ratings)
+	if err := json.NewEncoder(w).Encode(ratings); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertungen", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *RatingController) GetPassengerRatingsByRater(w http.ResponseWriter, r *http.Request) {
@@ -172,7 +194,10 @@ func (c *RatingController) GetPassengerRatingsByRater(w http.ResponseWriter, r *
 		return
 	}
 
-	json.NewEncoder(w).Encode(ratings)
+	if err := json.NewEncoder(w).Encode(ratings); err != nil {
+		c.Error(w, "Fehler beim Codieren der Bewertungen", http.StatusInternalServerError)
+		return
+	}
 }
 
 // --- Helper ---

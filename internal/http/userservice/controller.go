@@ -3,6 +3,7 @@ package userservice
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/mail"
 	"time"
@@ -26,8 +27,6 @@ type UserController struct {
 	*jwt.Encoder
 	service *UserService
 }
-
-
 
 func New(svc *UserService, secret []byte) *UserController {
 	svr := &UserController{
@@ -61,7 +60,7 @@ func (c *UserController) setupRoutes() {
 
 				h.ServeHTTP(w, r)
 			})
-		},)
+		})
 
 	// user
 	c.WithHandlerFunc("/", c.GetUsers, http.MethodGet)
@@ -81,7 +80,7 @@ func (c *UserController) setupRoutes() {
 	c.WithHandlerFunc("/webauthn/login", c.finishLogin, http.MethodPost)
 }
 
-func (c *UserController)beginRegistration(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) beginRegistration(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -104,7 +103,10 @@ func (c *UserController)beginRegistration(w http.ResponseWriter, r *http.Request
 		c.Error(w, "Fehler beim Speichern der Session-Daten", http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(options)
+	if err := json.NewEncoder(w).Encode(options); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +116,7 @@ func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Reque
 		c.Error(w, "ungültige ID", http.StatusBadRequest)
 		return
 	}
-	
+
 	user, err := c.service.GetUserByID(uid)
 	if err != nil {
 		c.Error(w, "Benutzer nicht gefunden", http.StatusNotFound)
@@ -133,10 +135,13 @@ func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write([]byte("Registrierung erfolgreich"))
+	if _, err := w.Write([]byte("Registrierung erfolgreich")); err != nil {
+		c.GetLogger().Error().Str("Fehler beim schreiben der Antwort", err.Error())
+		return
+	}
 }
 
-func (c *UserController)beginLogin(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) beginLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if _, err := mail.ParseAddress(email); email == "" || err != nil {
 		c.Error(w, "ungültige E-Mail-Adresse", http.StatusBadRequest)
@@ -155,18 +160,22 @@ func (c *UserController)beginLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.SessionData = *sessionData
-	c.service.repo.UpdateUser(user)
-	json.NewEncoder(w).Encode(options)
+	if err := c.service.repo.UpdateUser(user); err != nil {
+		log.Println("Failed to update user:", err)
+	}
+	if err := json.NewEncoder(w).Encode(options); err != nil {
+		log.Println("Failed to encode options:", err)
+	}
 }
 
-func (c *UserController)finishLogin(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) finishLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if _, err := mail.ParseAddress(email); email == "" || err != nil {
 		http.Error(w, "ungültige E-Mail-Adresse", http.StatusBadRequest)
 		return
 	}
 
-	user,err := c.service.repo.GetUserByEmail(email)
+	user, err := c.service.repo.GetUserByEmail(email)
 	if err != nil {
 		http.Error(w, "Benutzer nicht gefunden", http.StatusNotFound)
 		return
@@ -177,15 +186,16 @@ func (c *UserController)finishLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Authentifizierung fehlgeschlagen", http.StatusUnauthorized)
 		return
 	}
-	token, err := c.Encoder.EncodeUUID(user.ID, time.Duration(24*time.Hour))
+	token, err := c.EncodeUUID(user.ID, time.Duration(24*time.Hour))
 	if err != nil {
 		c.Error(w, "Fehler beim Generieren des Tokens", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	if err := json.NewEncoder(w).Encode(map[string]string{"token": token}); err != nil {
+		c.GetLogger().Err(err)
+	}
 }
-
 
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := c.service.GetUsers()
@@ -347,7 +357,7 @@ func (c *UserController) GetLoginToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := c.Encoder.EncodeUUID(user.ID, time.Duration(24*time.Hour))
+	token, err := c.EncodeUUID(user.ID, time.Duration(24*time.Hour))
 	if err != nil {
 		c.Error(w, "Fehler beim Generieren des Tokens", http.StatusInternalServerError)
 		return

@@ -20,10 +20,9 @@ var (
 )
 
 type Server struct {
-	log         zerolog.Logger
-	port        int
-	Router      *mux.Router
-	logRequests bool
+	log    zerolog.Logger
+	port   int
+	Router *mux.Router
 }
 
 func NewServer() *Server {
@@ -92,7 +91,10 @@ func (s *Server) Error(w http.ResponseWriter, message string, code int) {
 
 func (s *Server) WithVersion(version string) *Server {
 	s.WithHandlerFunc("/version", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Version: %s", version)
+		_, err := fmt.Fprintf(w, "Version: %s", version)
+		if err != nil {
+			s.log.Error().Err(err).Msg("Failed to write version response")
+		}
 	}, http.MethodGet)
 	return s
 }

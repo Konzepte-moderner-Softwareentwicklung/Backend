@@ -28,9 +28,9 @@ func (m *AuthMiddleware) EnsureJWT(next http.HandlerFunc) http.HandlerFunc {
 		userID, err := m.decoder.DecodeUUID(token)
 		if err != nil {
 			switch err {
-			case jwt.ERR_INVALID_TOKEN:
+			case jwt.ErrInvalidToken:
 				http.Error(w, "Invalid token", http.StatusUnauthorized)
-			case jwt.ERR_INVALID_CLAIMS:
+			case jwt.ErrInvalidClaims:
 				http.Error(w, "Token is expired", http.StatusUnauthorized)
 			default:
 				http.Error(w, "Unknown error", http.StatusInternalServerError)

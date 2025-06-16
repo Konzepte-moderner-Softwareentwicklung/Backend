@@ -38,7 +38,11 @@ func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
 		s.Error(w, "WebSocket upgrade failed", http.StatusInternalServerError)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			s.GetLogger().Err(err).Msg("Failed to close WebSocket connection")
+		}
+	}()
 
 	subject := fmt.Sprintf("user.%s", id.String())
 
@@ -55,7 +59,11 @@ func (s *Service) WSHandler(w http.ResponseWriter, r *http.Request) {
 		s.Error(w, "Failed to subscribe to subject", http.StatusInternalServerError)
 		return
 	}
-	defer sub.Unsubscribe()
+	defer func() {
+		if err := sub.Unsubscribe(); err != nil {
+			s.GetLogger().Err(err).Msg("Failed to unsubscribe from NATS subject")
+		}
+	}()
 
 	go func() {
 		for {
@@ -111,13 +119,24 @@ func (s *Service) HandleChatWS(w http.ResponseWriter, r *http.Request) {
 		s.Error(w, "WebSocket upgrade failed", http.StatusInternalServerError)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			s.GetLogger().Err(err).Msg("Failed to close WebSocket connection")
+		}
+	}()
 
 	subject := fmt.Sprintf("chat.message.%s", chatid.String())
-	s.NR.Subscribe(subject, func(msg *nats.Msg) {
+	_, err = s.NR.Subscribe(subject, func(msg *nats.Msg) {
 		s.GetLogger().Debug().Msgf("Received message: %s", msg.Data)
-		conn.WriteMessage(websocket.TextMessage, msg.Data)
+		if err := conn.WriteMessage(websocket.TextMessage, msg.Data); err != nil {
+			s.GetLogger().Err(err).Msg("Failed to write message to WebSocket")
+		}
 	})
+	if err != nil {
+		s.Error(w, "Failed to subscribe to NATS", http.StatusInternalServerError)
+		return
+	}
+
 	for {
 		if _, data, err := conn.ReadMessage(); err != nil {
 			s.GetLogger().Err(err)
@@ -145,7 +164,11 @@ func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {
 		s.Error(w, "WebSocket upgrade failed", http.StatusInternalServerError)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			s.GetLogger().Err(err).Msg("Failed to close WebSocket connection")
+		}
+	}()
 
 	subject := fmt.Sprintf("tracking.user.%s", id)
 	var trackingRequest TrackingRequest
@@ -167,7 +190,7 @@ func (s *Service) HandleTracking(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = s.NR.Conn.Publish(subject, jsonData)
+		err = s.NR.Publish(subject, jsonData)
 		if err != nil {
 			s.GetLogger().Err(err).Msg("Failed to publish tracking request")
 			s.Error(w, "Failed to publish tracking request", http.StatusInternalServerError)

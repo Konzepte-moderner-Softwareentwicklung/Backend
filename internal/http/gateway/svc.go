@@ -43,9 +43,13 @@ func (s *Service) LogNats() {
 	subject := "*"
 	msg := make(chan []byte)
 
-	s.NR.Subscribe(subject, func(m *nats.Msg) {
+	_, err := s.NR.Subscribe(subject, func(m *nats.Msg) {
 		msg <- m.Data
 	})
+	if err != nil {
+		s.GetLogger().Err(err).Msg("Failed to subscribe to NATS subject")
+		return
+	}
 
 	go func() {
 		for data := range msg {
