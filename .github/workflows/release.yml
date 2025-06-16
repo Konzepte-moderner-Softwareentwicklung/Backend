@@ -18,12 +18,12 @@ jobs:
       - name: Build and Push Docker image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build --no-cache -t ghcr.io/${{ github.repository }}-angebot:${{ env.RELEASE_VERSION }} -f cmd/angebot-service/Dockerfile . --push
-          docker build --no-cache -t ghcr.io/${{ github.repository }}-chat:${{ env.RELEASE_VERSION }} -f cmd/chat-service/Dockerfile . --push
-          docker build --no-cache -t ghcr.io/${{ github.repository }}-gateway:${{ env.RELEASE_VERSION }} -f cmd/gateway/Dockerfile . --push
-          docker build --no-cache -t ghcr.io/${{ github.repository }}-media:${{ env.RELEASE_VERSION }} -f cmd/media-service/Dockerfile . --push
-          docker build --no-cache -t ghcr.io/${{ github.repository }}-tracking:${{ env.RELEASE_VERSION }} -f cmd/tracking-service/Dockerfile . --push
-          docker build --no-cache -t ghcr.io/${{ github.repository }}-user:${{ env.RELEASE_VERSION }} -f cmd/user-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/konzepte-moderner-softwareentwicklung/backend-angebot${{ env.RELEASE_VERSION }} -f cmd/angebot-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/konzepte-moderner-softwareentwicklung/chat-service${{ env.RELEASE_VERSION }} -f cmd/chat-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/konzepte-moderner-softwareentwicklung/gateway${{ env.RELEASE_VERSION }} -f cmd/gateway/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/konzepte-moderner-softwareentwicklung/media-service${{ env.RELEASE_VERSION }} -f cmd/media-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/konzepte-moderner-softwareentwicklung/tracking-service${{ env.RELEASE_VERSION }} -f cmd/tracking-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/konzepte-moderner-softwareentwicklung/user-service${{ env.RELEASE_VERSION }} -f cmd/user-service/Dockerfile . --push
   release:
     runs-on: ubuntu-latest
     steps:
