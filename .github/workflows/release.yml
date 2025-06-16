@@ -1,0 +1,59 @@
+name: Release
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build and Push Docker image
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build --no-cache -t ghcr.io/${{ github.repository }}-angebot:${{ env.RELEASE_VERSION }} -f cmd/angebot-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/${{ github.repository }}-chat:${{ env.RELEASE_VERSION }} -f cmd/chat-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/${{ github.repository }}-gateway:${{ env.RELEASE_VERSION }} -f cmd/gateway/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/${{ github.repository }}-media:${{ env.RELEASE_VERSION }} -f cmd/media-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/${{ github.repository }}-tracking:${{ env.RELEASE_VERSION }} -f cmd/tracking-service/Dockerfile . --push
+          docker build --no-cache -t ghcr.io/${{ github.repository }}-user:${{ env.RELEASE_VERSION }} -f cmd/user-service/Dockerfile . --push
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Get last commits
+        id: last-commits
+        run: |
+          # Get the previous tag (if any)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.ref }}^ 2>/dev/null || echo "")
+
+          # Get the commit messages since the previous tag
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --oneline --pretty=format:"- %s" ${{ github.ref }})
+          else
+            COMMITS=$(git log --oneline --pretty=format:"- %s" $PREVIOUS_TAG..${{ github.ref }})
+          fi
+
+          # Output the commits for use in the release body
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Use Go Action
+        uses: akkuman/gitea-release-action@v1
+        with:
+          body: |
+            ${{ steps.last-commits.outputs.commits }}
+            ## Images:
+            - **[Docker Image](http://team6-managing.mni.thm.de:3000/Commz/-/packages/container/ai-service/${{ env.RELEASE_VERSION }})**
