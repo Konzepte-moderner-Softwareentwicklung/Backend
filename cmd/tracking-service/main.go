@@ -23,7 +23,7 @@ func main() {
 	flag.StringVar(&mongoURL, "mongo-url", "mongodb://mongo:27017", "MongoDB URL")
 	flag.Parse()
 
-	var loglevel zerolog.Level = zerolog.InfoLevel
+	var loglevel = zerolog.InfoLevel
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}

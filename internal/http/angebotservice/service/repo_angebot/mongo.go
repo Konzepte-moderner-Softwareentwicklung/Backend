@@ -2,6 +2,7 @@ package repoangebot
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"github.com/google/uuid"
@@ -54,7 +55,11 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer cur.Close(context.Background())
+	defer func() {
+		if err := cur.Close(context.Background()); err != nil {
+			log.Printf("Fehler beim Schließen der Cursor: %v", err)
+		}
+	}()
 
 	for cur.Next(context.Background()) {
 		var offer Offer
@@ -84,7 +89,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 
 		// Nutzerbezogene Filter (z. B. für eigene oder belegte Angebote)
 		if ft.User != uuid.Nil {
-			if !(ft.User == offer.OccupiedBy || ft.User == offer.Creator) {
+			if ft.User != offer.OccupiedBy && ft.User != offer.Creator {
 				continue
 			}
 		}

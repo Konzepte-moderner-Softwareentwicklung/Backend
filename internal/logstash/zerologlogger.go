@@ -11,11 +11,13 @@ import (
 )
 
 func NewZerologLogger(serviceName string, logLevel zerolog.Level) zerolog.Logger {
-	godotenv.Load()
 	var (
 		conn net.Conn
 		err  error
 	)
+	if err = godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	// attempt to connect to logstash
 	for range 50 {

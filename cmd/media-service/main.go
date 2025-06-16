@@ -29,7 +29,7 @@ func main() {
 	flag.StringVar(&minioUrl, "minio-url", "minio:9000", "MinIO URL")
 	flag.Parse()
 
-	var loglevel zerolog.Level = zerolog.InfoLevel
+	var loglevel = zerolog.InfoLevel
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}

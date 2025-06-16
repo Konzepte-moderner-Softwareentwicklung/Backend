@@ -37,7 +37,7 @@ func main() {
 	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
 	flag.Parse()
 
-	var loglevel zerolog.Level = zerolog.InfoLevel
+	var loglevel = zerolog.InfoLevel
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}
@@ -77,6 +77,10 @@ func main() {
 		WithLogRequest().
 		WithVersion("1.0.0").
 		WithPort(port)
-	defer gw.Close()
+	defer func() {
+		if err := gw.Close(); err != nil {
+			logger.Error().Err(err).Msg("Failed to close gateway")
+		}
+	}()
 	gw.ListenAndServe()
 }

@@ -27,7 +27,7 @@ func main() {
 
 	repo := repo.NewMongoRepo(mongoUrl)
 
-	var level zerolog.Level = zerolog.InfoLevel
+	var level = zerolog.InfoLevel
 	if verbose {
 		level = zerolog.DebugLevel
 	}

@@ -43,7 +43,7 @@ func (s *TrackingService) WithLogger(logger zerolog.Logger) *TrackingService {
 func (s *TrackingService) Start() {
 	s.logger.Info().Msg("Starting TrackingService...")
 	subjectPrefix := "tracking.user."
-	s.queue.Subscribe(subjectPrefix+"*", func(msg *nats.Msg) {
+	_, err := s.queue.Subscribe(subjectPrefix+"*", func(msg *nats.Msg) {
 		userID, err := uuid.Parse(msg.Subject[len(subjectPrefix):])
 		if err != nil {
 			s.logger.Error().Err(err).Msg("Failed to parse user ID from subject")
@@ -79,8 +79,15 @@ func (s *TrackingService) Start() {
 			return
 		}
 
-		s.queue.Publish("user."+offer.OccupiedBy.String(), msg.Data)
+		if err := s.queue.Publish("user."+offer.OccupiedBy.String(), msg.Data); err != nil {
+			s.logger.Error().Err(err).Msg("Failed to publish tracking request")
+			return
+		}
 		s.logger.Info().Msgf("Published tracking request for user %s to offer %s, %s", userID, offer.ID, string(msg.Data))
 	})
+	if err != nil {
+		s.logger.Error().Err(err).Msg("Failed to subscribe to tracking requests")
+		return
+	}
 	select {} // Block forever
 }

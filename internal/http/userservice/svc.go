@@ -2,6 +2,7 @@ package userservice
 
 import (
 	"errors"
+	"log"
 	"os"
 	"strings"
 
@@ -20,7 +21,7 @@ type UserService struct {
 func NewUserService(repo repo.Repo) *UserService {
 	err := godotenv.Load()
 	if err != nil {
-		os.Stdout.WriteString("failed to load .env file: " + err.Error())
+		log.Println("Failed to load .env file:", err)
 	}
 
 	// Load BASE_URL from environment variable or .env file if it exists

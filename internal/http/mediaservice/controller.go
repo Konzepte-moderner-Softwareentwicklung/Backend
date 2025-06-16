@@ -43,12 +43,17 @@ func (mc *MediaController) setupRoutes() {
 }
 
 func (mc *MediaController) handleIndex(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World"))
+	if _, err := w.Write([]byte("Hello World")); err != nil {
+		mc.GetLogger().Err(err)
+	}
 }
 
 func (mc *MediaController) UploadPicture(w http.ResponseWriter, r *http.Request) {
 	img, err := io.ReadAll(r.Body)
-
+	if err != nil {
+		mc.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	contentType := r.Header.Get("Content-Type")
 	if contentType == "" {
 		mc.Error(w, "content type cannot be empty", http.StatusBadRequest)
@@ -76,7 +81,10 @@ func (mc *MediaController) UploadPicture(w http.ResponseWriter, r *http.Request)
 		Success: true,
 	}
 
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		mc.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +104,10 @@ func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set("Content-Type", "image/jpeg")
-	w.Write(img)
+	if _, err := w.Write(img); err != nil {
+		mc.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +131,10 @@ func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Reque
 
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(links)
+	if err := json.NewEncoder(w).Encode(links); err != nil {
+		mc.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (mc *MediaController) UploadToCompoundLinks(w http.ResponseWriter, r *http.Request) {

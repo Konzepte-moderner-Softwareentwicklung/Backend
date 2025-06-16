@@ -49,7 +49,11 @@ func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Reque
 	}
 
 	var offer repoangebot.Offer
-	json.NewDecoder(r.Body).Decode(&offer)
+	err = json.NewDecoder(r.Body).Decode(&offer)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	offer.Creator = uid
 	imageURL := c.CreateMultiImageUrl()
 	offerId, err := c.service.CreateOffer(&offer, imageURL)
@@ -57,13 +61,16 @@ func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Reque
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(struct {
+	if err = json.NewEncoder(w).Encode(struct {
 		ID       string `json:"id"`
 		ImageURL string `json:"image_url"`
 	}{
 		ID:       offerId.String(),
 		ImageURL: imageURL,
-	})
+	}); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *OfferController) handleGetOffer(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +87,10 @@ func (c *OfferController) handleGetOffer(w http.ResponseWriter, r *http.Request)
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(offer)
+	if err := json.NewEncoder(w).Encode(offer); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *OfferController) handleGetOfferByFilter(w http.ResponseWriter, r *http.Request) {
@@ -95,5 +105,8 @@ func (c *OfferController) handleGetOfferByFilter(w http.ResponseWriter, r *http.
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(offers)
+	if err := json.NewEncoder(w).Encode(offers); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

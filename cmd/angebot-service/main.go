@@ -16,13 +16,10 @@ const (
 )
 
 var (
-	port            int
-	isVerbose       bool
-	minioUrl        string
-	accessKeyID     string
-	secretAccessKey string
-	mongoUrl        string
-	jwtSecret       string
+	port      int
+	isVerbose bool
+	mongoUrl  string
+	jwtSecret string
 )
 
 func main() {
@@ -32,7 +29,7 @@ func main() {
 	flag.StringVar(&jwtSecret, "jwt", "some jwt key", "JWT Secret")
 	flag.Parse()
 
-	var loglevel zerolog.Level = zerolog.InfoLevel
+	var loglevel = zerolog.InfoLevel
 	if isVerbose {
 		loglevel = zerolog.DebugLevel
 	}
