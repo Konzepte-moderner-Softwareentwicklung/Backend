@@ -156,7 +156,7 @@ services:
     ports:
       - "9200:9200"
     volumes:
-      - ./logging_data:/usr/share/elasticsearch/data
+      - ./logging_data:/usr/share/elasticsearch/data:rw
     networks:
       - default
 
