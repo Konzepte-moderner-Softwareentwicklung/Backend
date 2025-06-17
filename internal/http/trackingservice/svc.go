@@ -71,6 +71,11 @@ func (s *TrackingService) Start() {
 			return
 		}
 
+		s.logger.Info().Dict("location", zerolog.Dict().
+			Float64("lat", trackingRequest.Location.Latitude).
+			Float64("lon", trackingRequest.Location.Longitude)).
+		Msg("user tracking")
+
 		if err := s.mongoClient.SaveTracking(repo.Tracking{
 			UserID:   userID,
 			Tracking: trackingRequest,
