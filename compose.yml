@@ -171,6 +171,22 @@ services:
     networks:
       - default
 
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:8.13.0
+    depends_on:
+      - elasticsearch
+    ports:
+      - "8200:8200"
+    environment:
+      - output.elasticsearch.hosts=["http://elasticsearch:9200"]
+      - apm-server.host=0.0.0.0:8200
+      - apm-server.enable_log_file=true
+      - apm-server.logging.level=info
+      - apm-server.secret_token=changeme
+      - xpack.security.enabled=false
+    command: >
+      apm-server -e
+
   logstash:
     image: docker.elastic.co/logstash/logstash:8.13.4
     volumes:
