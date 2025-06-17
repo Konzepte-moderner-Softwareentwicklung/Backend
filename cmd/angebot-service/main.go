@@ -1,13 +1,15 @@
 package main
 
 import (
-	"flag"
+	"log"
 	"os"
+	"strconv"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service"
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
 
@@ -16,18 +18,29 @@ const (
 )
 
 var (
-	port      int
-	isVerbose bool
+	port      int  = DEFAULT_PORT
+	isVerbose bool = false
 	mongoUrl  string
 	jwtSecret string
 )
 
 func main() {
-	flag.IntVar(&port, "port", DEFAULT_PORT, "Port to listen on")
-	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
-	flag.StringVar(&mongoUrl, "mongo-url", "mongodb://mongo:27017", "MongoDB URL")
-	flag.StringVar(&jwtSecret, "jwt", "some jwt key", "JWT Secret")
-	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Println("Failed to parse PORT environment variable")
+		panic(err)
+	}
+
+	if os.Getenv("VERBOSE") == "true" {
+		isVerbose = true
+	}
+
+	mongoUrl = os.Getenv("MONGO_URL")
+	jwtSecret = os.Getenv("JWT_SECRET")
 
 	var loglevel = zerolog.InfoLevel
 	if isVerbose {

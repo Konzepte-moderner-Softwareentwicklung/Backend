@@ -10,9 +10,9 @@ assignees: []
 
 Clearly and concisely describe the feature you would like to be implemented.
 
-## 🎯 Goal / Use Case
+## Goal / Use Case
 
-What problem does this feature solve?  
+What problem does this feature solve?
 Why is it important or useful?
 
 ## 🛠️ Proposed Implementation

@@ -1,12 +1,14 @@
 package main
 
 import (
-	"flag"
+	"log"
+	"os"
+	"strconv"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
-	"github.com/nats-io/nats.go"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
 
@@ -23,13 +25,23 @@ var (
 )
 
 func main() {
-	// Initialize flags
-	flag.IntVar(&port, "port", DEFAULT_PORT, "Port to listen on")
-	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
-	flag.StringVar(&mongoURL, "mongo", "mongodb://mongo:27017", "MongoDB URL")
-	flag.StringVar(&jwtKey, "jwt", "some jwt key", "JWT key")
-	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
-	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Println("Failed to parse PORT environment variable")
+		panic(err)
+	}
+
+	if os.Getenv("VERBOSE") == "true" {
+		isVerbose = true
+	}
+
+	natsURL = os.Getenv("NATS_URL")
+	mongoURL = os.Getenv("MONGO_URL")
+	jwtKey = os.Getenv("JWT_SECRET")
 
 	// Set log level based on verbose flag
 	var loglevel = zerolog.ErrorLevel

@@ -11,4 +11,4 @@ WORKDIR /root/
 COPY --from=builder /bin/media-service .
 COPY .env .env
 EXPOSE 8080
-CMD ["./media-service", "-port", "8080", "-verbose"]
+CMD ["./media-service"]
