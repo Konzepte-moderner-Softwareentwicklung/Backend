@@ -1,13 +1,14 @@
 package main
 
 import (
-	"flag"
+	"log"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
-	"github.com/nats-io/nats.go"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
 
@@ -23,19 +24,29 @@ var (
 	mediaService   string
 	angebotService string
 	chatService    string
-	isVerbose      bool
+	isVerbose      bool = false
 )
 
 func main() {
-	flag.IntVar(&port, "port", DEFAULT_PORT, "Port to listen on")
-	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
-	flag.StringVar(&jwtKey, "jwt", "some jwt key", "JWT key")
-	flag.StringVar(&userService, "user-service", "http://user-service:8080", "User service URL")
-	flag.StringVar(&mediaService, "media-service", "http://media-service:8080", "Media service URL")
-	flag.StringVar(&angebotService, "angebot-service", "http://angebot-service:8080", "Angebot service URL")
-	flag.StringVar(&chatService, "chat-service", "http://chat-service:8080", "Chat service URL")
-	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
-	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Println("Failed to parse PORT environment variable")
+		panic(err)
+	}
+	if os.Getenv("VERBOSE") == "true" {
+		isVerbose = true
+	}
+
+	natsURL = os.Getenv("NATS_URL")
+	jwtKey = os.Getenv("JWT_SECRET")
+	userService = os.Getenv("USER_SERVICE")
+	mediaService = os.Getenv("MEDIA_SERVICE")
+	angebotService = os.Getenv("ANGEBOT_SERVICE")
+	chatService = os.Getenv("CHAT_SERVICE")
 
 	var loglevel = zerolog.InfoLevel
 	if isVerbose {

@@ -11,4 +11,4 @@ WORKDIR /root/
 COPY --from=builder /bin/tracking-service .
 COPY .env .env
 EXPOSE 8080
-CMD ["./tracking-service", "-nats", "nats://nats:4222", "-verbose", "offer-url", "http://angebot-service:8080"]
+CMD ["./tracking-service"]
