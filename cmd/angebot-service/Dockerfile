@@ -11,4 +11,4 @@ WORKDIR /root/
 COPY --from=builder /bin/angebot-service .
 COPY .env .env
 EXPOSE 8080
-CMD ["./angebot-service", "-port", "8080", "-verbose"]
+CMD ["./angebot-service"]

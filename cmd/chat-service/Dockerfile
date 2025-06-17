@@ -11,4 +11,4 @@ WORKDIR /root/
 COPY --from=builder /bin/chat-service .
 COPY .env .env
 EXPOSE 8080
-CMD ["./chat-service", "-port", "8080", "-verbose"]
+CMD ["./chat-service"]

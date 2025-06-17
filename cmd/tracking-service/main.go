@@ -1,11 +1,11 @@
 package main
 
 import (
-	"flag"
+	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/trackingservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
-	"github.com/nats-io/nats.go"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
 
@@ -17,11 +17,18 @@ var (
 )
 
 func main() {
-	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
-	flag.StringVar(&offerURL, "offer-url", "http://angebot-service:8080", "Offer service URL")
-	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
-	flag.StringVar(&mongoURL, "mongo-url", "mongodb://mongo:27017", "MongoDB URL")
-	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
+	if os.Getenv("VERBOSE") == "true" {
+		isVerbose = true
+	}
+
+	natsURL = os.Getenv("NATS_URL")
+	offerURL = os.Getenv("ANGEBOT_SERVICE")
+	mongoURL = os.Getenv("MONGO_URL")
 
 	var loglevel = zerolog.InfoLevel
 	if isVerbose {

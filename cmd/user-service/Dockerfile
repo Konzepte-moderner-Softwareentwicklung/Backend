@@ -11,4 +11,4 @@ WORKDIR /root/
 COPY --from=builder /bin/user-service .
 EXPOSE 8080
 COPY .env .env
-CMD ["./user-service", "-port", "8080", "-nats", "nats://nats:4222", "-mongo", "mongodb://mongo:27017", "-verbose"]
+CMD ["./user-service"]
