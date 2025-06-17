@@ -178,6 +178,8 @@ services:
     ports:
       - "8200:8200"
     environment:
+      - apm-server.kibana.enabled=true
+      - apm-server.kibana.host=http://kibana:5601/
       - output.elasticsearch.hosts=["http://elasticsearch:9200"]
       - apm-server.host=0.0.0.0:8200
       - apm-server.enable_log_file=true
