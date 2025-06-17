@@ -82,5 +82,5 @@ func main() {
 			logger.Error().Err(err).Msg("Failed to close gateway")
 		}
 	}()
-	gw.ListenAndServe()
+	gw.ListenAndServe("gateway")
 }

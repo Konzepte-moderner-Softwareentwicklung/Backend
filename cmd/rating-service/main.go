@@ -56,5 +56,5 @@ func main() {
 		WithLogRequest().
 		WithVersion("1.0.0").
 		WithPort(port).
-		ListenAndServe()
+		ListenAndServe("rating-service")
 }

@@ -37,6 +37,6 @@ func main() {
 	svc.
 		WithPort(port).
 		WithLogger(logger).
-		ListenAndServe()
+		ListenAndServe("chat-service")
 
 }

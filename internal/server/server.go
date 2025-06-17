@@ -8,6 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
+
+	"go.elastic.co/apm/module/apmhttp"
 )
 
 const (
@@ -119,7 +121,11 @@ func GetScheme(r *http.Request) string {
 	return "http"
 }
 
-func (s *Server) ListenAndServe() {
+func (s *Server) ListenAndServe(serviceName string) {
+	err := os.Setenv("ELASTIC_APM_SERVICE_NAME", serviceName)
+	if err != nil {
+		panic(err)
+	}
 	s.log.Print("Server started on port ", s.port)
-	s.log.Error().AnErr("startup", http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.Router))
+	s.log.Error().AnErr("startup", http.ListenAndServe(fmt.Sprintf(":%d", s.port), apmhttp.Wrap(s.Router)))
 }

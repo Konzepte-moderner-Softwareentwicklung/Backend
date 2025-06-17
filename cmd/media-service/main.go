@@ -45,5 +45,5 @@ func main() {
 		WithLogger(logger).
 		WithLogRequest().
 		WithVersion("1.0.0").
-		ListenAndServe()
+		ListenAndServe("media-service")
 }

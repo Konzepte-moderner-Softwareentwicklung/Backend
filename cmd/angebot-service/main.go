@@ -51,5 +51,5 @@ func main() {
 		WithPort(port).
 		WithLogger(logger).
 		WithLogRequest().
-		ListenAndServe()
+		ListenAndServe("angebot-service")
 }
