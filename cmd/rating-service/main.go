@@ -1,14 +1,14 @@
 package main
 
 import (
-	"flag"
-	"os"
-
-	"github.com/nats-io/nats.go"
-
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice"
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice/repo"
+
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	"log"
+	"os"
+	"strconv"
 )
 
 const (
@@ -20,17 +20,25 @@ var (
 	port      int
 	natsURL   string
 	mongoURL  string
-	jwtKey    string
 )
 
 func main() {
-	// Initialize flags
-	flag.IntVar(&port, "port", DEFAULT_PORT, "Port to listen on")
-	flag.StringVar(&natsURL, "nats", nats.DefaultURL, "NATS URL")
-	flag.StringVar(&mongoURL, "mongo", "mongodb://mongo:27017", "MongoDB URL")
-	flag.StringVar(&jwtKey, "jwt", "some jwt key", "JWT key")
-	flag.BoolVar(&isVerbose, "verbose", false, "Enable verbose logging")
-	flag.Parse()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	port, err = strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Println("Failed to parse PORT environment variable")
+		panic(err)
+	}
+
+	if os.Getenv("VERBOSE") == "true" {
+		isVerbose = true
+	}
+
+	natsURL = os.Getenv("NATS_URL")
+	mongoURL = os.Getenv("MONGO_URL")
 
 	// Set log level based on verbose flag
 	var loglevel = zerolog.ErrorLevel
@@ -39,22 +47,16 @@ func main() {
 	}
 
 	// Initialize logger
-	logger := zerolog.New(os.Stdout).Level(loglevel)
+	logger := logstash.NewZerologLogger("rating-service", loglevel)
 
-	// Initialize repository
-	repository, err := repo.NewMongoRepo(mongoURL)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("Failed to create MongoDB repository")
-	}
+	// Create the user service
 
-	// Create the rating service
-	service := ratingservice.NewRatingService(repository)
+	service := ratingservice.NewService(natsURL, ratingservice.NewMongoRepo(mongoURL))
+	service.WithLogger(logger)
+	done := make(chan struct{})
 
-	// Start the REST service
-	ratingservice.New(service, []byte(jwtKey)).
-		WithLogger(logger).
-		WithLogRequest().
-		WithVersion("1.0.0").
-		WithPort(port).
-		ListenAndServe()
+	go service.StartNats(done)
+
+	service.WithLogger(logger).WithLogRequest().WithPort(port).ListenAndServe()
+
 }
