@@ -2,7 +2,11 @@ package angebotservice
 
 import (
 	"encoding/json"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice"
+	"github.com/nats-io/nats.go"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service"
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
@@ -22,13 +26,21 @@ type OfferController struct {
 	*msclient.Client
 	service service.Service
 	*auth.AuthMiddleware
+	*nats.Conn
 }
 
 func New(svc service.Service, secret []byte) *OfferController {
+	NATS_URL := os.Getenv("NATS_URL")
+	conn, err := nats.Connect(NATS_URL)
+	if err != nil {
+		panic(err)
+	}
+
 	svr := &OfferController{
 		Server:         server.NewServer(),
 		service:        svc,
 		AuthMiddleware: auth.NewAuthMiddleware(secret),
+		Conn:           conn,
 	}
 	svr.setupRoutes()
 	return svr
@@ -38,6 +50,35 @@ func (c *OfferController) setupRoutes() {
 	c.WithHandlerFunc("/filter", c.handleGetOfferByFilter, http.MethodPost)
 	c.WithHandlerFunc("/", c.EnsureJWT(c.handleCreateOffer), http.MethodPost)
 	c.WithHandlerFunc("/{id}", c.handleGetOffer, http.MethodGet)
+
+	c.WithHandlerFunc("/{id}/rating", c.EnsureJWT(c.handlePostRating), http.MethodPost)
+}
+
+func (c *OfferController) handlePostRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	_, err := uuid.Parse(vars["id"])
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	userId, err := uuid.Parse(r.Header.Get(UserIdHeader))
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	var rating ratingservice.Rating
+	if err := json.NewDecoder(r.Body).Decode(&rating); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer r.Body.Close()
+	if err = c.Publish("rating."+userId.String(), body); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
 }
 
 func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Request) {

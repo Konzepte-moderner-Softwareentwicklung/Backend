@@ -3,9 +3,12 @@ package userservice
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/ratingclient"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"net/mail"
+	"os"
 	"time"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
@@ -25,15 +28,23 @@ type UserController struct {
 	*server.Server
 	*auth.AuthMiddleware
 	*jwt.Encoder
-	service *UserService
+	service      *UserService
+	ratingClient *ratingclient.RatingClient
 }
 
 func New(svc *UserService, secret []byte) *UserController {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Failed to load .env file:", err)
+	}
+	RATING_URL := os.Getenv("RATING_SERVICE_URL")
+
 	svr := &UserController{
 		Server:         server.NewServer(),
 		AuthMiddleware: auth.NewAuthMiddleware(secret),
 		Encoder:        jwt.NewEncoder(secret),
 		service:        svc,
+		ratingClient:   ratingclient.NewRatingClient(RATING_URL),
 	}
 
 	svr.setupRoutes()
@@ -78,6 +89,24 @@ func (c *UserController) setupRoutes() {
 	c.WithHandlerFunc("/webauthn/register", c.EnsureJWT(c.finishRegistration), http.MethodPost)
 	c.WithHandlerFunc("/webauthn/login/options", c.beginLogin, http.MethodGet)
 	c.WithHandlerFunc("/webauthn/login", c.finishLogin, http.MethodPost)
+
+	// rating
+	c.WithHandlerFunc("/{id}/rating", c.HandleGetRating, http.MethodGet)
+}
+
+func (c *UserController) HandleGetRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := uuid.Parse(vars["id"])
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	ratings, err := c.ratingClient.GetRatingsByUserID(id)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	if err := json.NewEncoder(w).Encode(ratings); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (c *UserController) beginRegistration(w http.ResponseWriter, r *http.Request) {

@@ -97,6 +97,19 @@ services:
     networks:
       - default
 
+  rating-service:
+    depends_on:
+      - nats
+      - logstash
+      - mongo
+    build:
+      context: .
+      dockerfile: cmd/rating-service/Dockerfile
+    ports:
+      - "8087:8080"
+    networks:
+      - default
+
   tracking-service:
     depends_on:
       - logstash
