@@ -1,101 +1,72 @@
 package ratingservice
 
 import (
-	"errors"
-	"time"
+	"encoding/json"
 
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice/repo"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/google/uuid"
+	"github.com/nats-io/nats.go"
 )
 
-type RatingService struct {
-	repo repo.RatingRepo
+type Service struct {
+	server.Server
+	*nats.Conn
+	Repository
 }
 
-func NewRatingService(r repo.RatingRepo) *RatingService {
-	return &RatingService{repo: r}
-}
-
-
-func (s *RatingService) CreateDriverRating(r repo.DriverRating) error {
-	if err := validateDriverRating(r); err != nil {
-		return err
+func NewService(natsUrl string, repo Repository) *Service {
+	conn, err := nats.Connect(natsUrl)
+	if err != nil {
+		panic(err)
 	}
-	r.ID = uuid.New()
-	r.CreatedAt = time.Now()
-	return s.repo.CreateDriverRating(r)
-}
 
-func (s *RatingService) GetDriverRatingByID(id uuid.UUID) (repo.DriverRating, error) {
-	return s.repo.GetDriverRatingByID(id)
-}
-
-func (s *RatingService) UpdateDriverRating(r repo.DriverRating) error {
-	if err := validateDriverRating(r); err != nil {
-		return err
+	svc := &Service{
+		Server:     *server.NewServer(),
+		Conn:       conn,
+		Repository: repo,
 	}
-	return s.repo.UpdateDriverRating(r)
+
+	return svc
 }
 
-func (s *RatingService) DeleteDriverRating(id uuid.UUID) error {
-	return s.repo.DeleteDriverRating(id)
+type Rating struct {
+	UserIDFrom uuid.UUID `json:"user_id_from"`
+	UserIDTo   uuid.UUID `json:"user_id_to"`
+	Value      int       `json:"value"`
+	Content    string    `json:"content"`
 }
 
-func (s *RatingService) GetDriverRatingsByTarget(targetID uuid.UUID) ([]repo.DriverRating, error) {
-	return s.repo.GetDriverRatingsByTarget(targetID)
-}
+func (svc *Service) StartNats(done <-chan struct{}) {
+	subject := "ratings."
 
-func (s *RatingService) GetDriverRatingsByRater(raterID uuid.UUID) ([]repo.DriverRating, error) {
-	return s.repo.GetDriverRatingsByRater(raterID)
-}
+	sub, _ := svc.Subscribe(subject+"*", func(msg *nats.Msg) {
+		// TODO: validate user id
+		var (
+			rating Rating
+			userId uuid.UUID
+			err    error
+		)
+		user := msg.Subject[len(subject):]
+		if userId, err = uuid.Parse(user); err != nil {
+			svc.GetLogger().Err(err)
+			return
+		}
 
+		if err = json.Unmarshal(msg.Data, &rating); err != nil {
+			svc.GetLogger().Err(err)
+			return
+		}
+		rating.UserIDFrom = userId
+		if err := svc.CreateRating(&rating); err != nil {
+			svc.GetLogger().Err(err)
+			return
+		}
+	})
 
-func (s *RatingService) CreatePassengerRating(r repo.PassengerRating) error {
-	if err := validatePassengerRating(r); err != nil {
-		return err
+	select {
+	case <-done:
+		svc.GetLogger().Info().Msg("Shutting down NATS service")
+		sub.Unsubscribe()
+		svc.Conn.Close()
 	}
-	r.ID = uuid.New()
-	r.CreatedAt = time.Now()
-	return s.repo.CreatePassengerRating(r)
-}
-
-func (s *RatingService) GetPassengerRatingByID(id uuid.UUID) (repo.PassengerRating, error) {
-	return s.repo.GetPassengerRatingByID(id)
-}
-
-func (s *RatingService) UpdatePassengerRating(r repo.PassengerRating) error {
-	if err := validatePassengerRating(r); err != nil {
-		return err
-	}
-	return s.repo.UpdatePassengerRating(r)
-}
-
-func (s *RatingService) DeletePassengerRating(id uuid.UUID) error {
-	return s.repo.DeletePassengerRating(id)
-}
-
-func (s *RatingService) GetPassengerRatingsByTarget(targetID uuid.UUID) ([]repo.PassengerRating, error) {
-	return s.repo.GetPassengerRatingsByTarget(targetID)
-}
-
-func (s *RatingService) GetPassengerRatingsByRater(raterID uuid.UUID) ([]repo.PassengerRating, error) {
-	return s.repo.GetPassengerRatingsByRater(raterID)
-}
-
-func validateDriverRating(r repo.DriverRating) error {
-	if !inRange(r.Punctuality) || !inRange(r.Comfort) || !inRange(r.AgreementsKept) || !inRange(r.CargoSafe) {
-		return errors.New("driver rating values must be between 1 and 5")
-	}
-	return nil
-}
-
-func validatePassengerRating(r repo.PassengerRating) error {
-	if !inRange(r.Punctuality) || !inRange(r.AgreementsKept) || !inRange(r.EnjoyedRide) {
-		return errors.New("passenger rating values must be between 1 and 5")
-	}
-	return nil
-}
-
-func inRange(val int) bool {
-	return val >= 1 && val <= 5
 }
