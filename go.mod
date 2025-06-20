@@ -14,6 +14,7 @@ require (
 	github.com/nats-io/nats.go v1.42.0
 	github.com/rs/zerolog v1.34.0
 	github.com/swaggo/http-swagger v1.3.4
+	github.com/swaggo/swag v1.16.4
 	go.mongodb.org/mongo-driver v1.17.3
 	golang.org/x/crypto v0.38.0
 )
@@ -46,7 +47,6 @@ require (
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
-	github.com/swaggo/swag v1.16.4 // indirect
 	github.com/tinylib/msgp v1.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
