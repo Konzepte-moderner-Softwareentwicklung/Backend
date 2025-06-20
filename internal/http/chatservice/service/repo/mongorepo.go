@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sort"
+	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,6 +14,7 @@ import (
 
 type MongoRepo struct {
 	messageCollection *mongo.Collection
+	chatCollection    *mongo.Collection
 }
 
 func NewMongoRepo(uri string) Repository {
@@ -22,7 +24,48 @@ func NewMongoRepo(uri string) Repository {
 	}
 	return &MongoRepo{
 		messageCollection: client.Database("MyCargonaut").Collection("chat_messages"),
+		chatCollection:    client.Database("MyCargonaut").Collection("chats"),
 	}
+}
+
+func (r *MongoRepo) CreateChat(userIds ...uuid.UUID) (uuid.UUID, error) {
+	id := uuid.New()
+	chat := Chat{
+		ID:        id,
+		UserIds:   userIds,
+		CreatedAt: time.Now(),
+	}
+	_, err := r.chatCollection.InsertOne(context.Background(), chat)
+	return id, err
+}
+
+func (r *MongoRepo) GetChats(userId uuid.UUID) ([]Chat, error) {
+	filter := bson.M{"user_ids": bson.M{"$in": []uuid.UUID{userId}}}
+	cursor, err := r.chatCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err := cursor.Close(context.Background()); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	var chats []Chat
+	for cursor.Next(context.Background()) {
+		var chat Chat
+		if err := cursor.Decode(&chat); err != nil {
+			return nil, err
+		}
+		chats = append(chats, chat)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return chats, nil
 }
 
 func (r *MongoRepo) GetHistory(id uuid.UUID) ([]Message, error) {
@@ -58,7 +101,8 @@ func (r *MongoRepo) GetHistory(id uuid.UUID) ([]Message, error) {
 	return messages, nil
 }
 
-func (r *MongoRepo) SendMessage(message Message) error {
+func (r *MongoRepo) SendMessage(message Message, chatId uuid.UUID) error {
+	message.ChatId = chatId
 	_, err := r.messageCollection.InsertOne(context.Background(), message)
 	return err
 }

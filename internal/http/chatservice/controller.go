@@ -33,8 +33,65 @@ func New(secret []byte, repo repo.Repository, natsUrl string) *ChatController {
 }
 
 func (c *ChatController) setupRoutes() {
+	c.WithHandlerFunc("/", c.EnsureJWT(c.HandleGetChats), http.MethodGet)
+	c.WithHandlerFunc("/", c.EnsureJWT(c.CreateChat), http.MethodPost)
 	c.WithHandlerFunc("/{chatId}", c.EnsureJWT(c.HandleGetChat), http.MethodGet)
 	c.WithHandlerFunc("/{chatId}", c.EnsureJWT(c.HandleSendMessage), http.MethodPost)
+}
+
+func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) {
+	var (
+		userId uuid.UUID
+		err    error
+	)
+
+	userId, err = uuid.Parse(r.Header.Get(UserIdHeader))
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	chats, err := c.service.GetChats(userId)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(chats); err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
+	var (
+		userId uuid.UUID
+		err    error
+	)
+
+	userId, err = uuid.Parse(r.Header.Get(UserIdHeader))
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var usersRequest = struct {
+		UserIds []uuid.UUID `json:"userIds"`
+	}{
+		UserIds: []uuid.UUID{},
+	}
+	if err := json.NewDecoder(r.Body).Decode(&usersRequest); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	chatId, err := c.service.CreateChat(append(usersRequest.UserIds, userId)...)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(chatId)
 }
 
 func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
