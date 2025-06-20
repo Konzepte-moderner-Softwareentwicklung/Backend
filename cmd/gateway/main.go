@@ -6,10 +6,13 @@ import (
 	"os"
 	"strconv"
 
+	_ "embed"
+
 	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/gateway/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/version"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -30,9 +33,14 @@ var (
 	isVerbose      bool = false
 )
 
+//go:embed version.json
+var versionJSON string
+
 // @title Gateway API
 // @version 1.0
 // @description This is the API for the Gateway Service
+//
+//go:generate go run ../version/main.go
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -59,7 +67,7 @@ func main() {
 		loglevel = zerolog.DebugLevel
 	}
 	logger := logstash.NewZerologLogger("gateway", loglevel)
-
+	logger = version.LoggerWithVersion(versionJSON, logger)
 	// parse URLs
 	userServiceURL, err := url.Parse(userService)
 	if err != nil {

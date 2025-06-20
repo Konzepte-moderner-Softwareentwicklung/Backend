@@ -28,3 +28,6 @@ logging_data
 
 # Swagger generated documentation
 # cmd/*/docs
+
+# Version information that is generated while building
+cmd/*/version.json

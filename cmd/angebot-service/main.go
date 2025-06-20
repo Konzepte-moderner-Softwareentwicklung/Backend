@@ -5,12 +5,15 @@ import (
 	"os"
 	"strconv"
 
+	_ "embed"
+
 	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/angebot-service/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service"
 	repoangebot "github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/angebotservice/service/repo_angebot"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/version"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -27,9 +30,14 @@ var (
 	jwtSecret string
 )
 
+//go:embed version.json
+var versionJSON string
+
 // @title Angebot Service API
 // @version 1.0
 // @description This is the API for the Angebot Service
+//
+//go:generate go run ../version/main.go
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -53,7 +61,7 @@ func main() {
 		loglevel = zerolog.DebugLevel
 	}
 	logger := logstash.NewZerologLogger("angebot-service", loglevel)
-
+	logger = version.LoggerWithVersion(versionJSON, logger)
 	repo, err := repoangebot.NewMongoRepo(mongoUrl)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to create repository")

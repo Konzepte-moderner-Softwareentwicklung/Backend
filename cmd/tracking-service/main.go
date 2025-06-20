@@ -1,10 +1,12 @@
 package main
 
 import (
+	_ "embed"
 	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/trackingservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/version"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 )
@@ -16,6 +18,10 @@ var (
 	mongoURL  string
 )
 
+//go:embed version.json
+var versionJSON string
+
+//go:generate go run ../version/main.go
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -35,7 +41,7 @@ func main() {
 		loglevel = zerolog.DebugLevel
 	}
 	logger := logstash.NewZerologLogger("tracking-service", loglevel)
-
+	logger = version.LoggerWithVersion(versionJSON, logger)
 	trackingservice.NewTrackingService(natsURL, offerURL, mongoURL).
 		WithLogger(logger).
 		Start()
