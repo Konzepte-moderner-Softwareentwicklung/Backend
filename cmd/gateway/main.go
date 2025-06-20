@@ -6,10 +6,13 @@ import (
 	"os"
 	"strconv"
 
+	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/gateway/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/gateway"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 const (
@@ -27,6 +30,9 @@ var (
 	isVerbose      bool = false
 )
 
+// @title Gateway API
+// @version 1.0
+// @description This is the API for the Gateway Service
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -83,6 +89,10 @@ func main() {
 		"chat":    *chatServiceURL,
 	})
 
+	var isSwagger = os.Getenv("SWAGGER") == "true"
+	if isSwagger {
+		gw.Router.PathPrefix(server.SWAGGER_PATH).Handler(httpSwagger.WrapHandler)
+	}
 	gw.
 		WithLogger(logger).
 		WithLogRequest().

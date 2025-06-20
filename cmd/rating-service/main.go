@@ -1,14 +1,18 @@
 package main
 
 import (
+	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/rating-service/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	"log"
+	"os"
+	"strconv"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
-	"log"
-	"os"
-	"strconv"
 )
 
 const (
@@ -22,6 +26,9 @@ var (
 	mongoURL  string
 )
 
+// @title Rating Service API
+// @version 1.0
+// @description This is the API for the Rating Service
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -56,6 +63,10 @@ func main() {
 	done := make(chan struct{})
 
 	go service.StartNats(done)
+	var isSwagger = os.Getenv("SWAGGER") == "true"
+	if isSwagger {
+		service.Router.PathPrefix(server.SWAGGER_PATH).Handler(httpSwagger.WrapHandler)
+	}
 
 	service.WithLogger(logger).WithLogRequest().WithPort(port).ListenAndServe()
 

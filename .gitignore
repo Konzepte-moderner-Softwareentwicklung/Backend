@@ -27,4 +27,4 @@ go.work.sum
 logging_data
 
 # Swagger generated documentation
-cmd/*/docs
+# cmd/*/docs

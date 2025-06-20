@@ -5,11 +5,14 @@ import (
 	"os"
 	"strconv"
 
+	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/user-service/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 const (
@@ -24,6 +27,9 @@ var (
 	jwtKey    string
 )
 
+// @title User Service API
+// @version 1.0
+// @description This is the API for the User Service
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -58,9 +64,14 @@ func main() {
 
 	// Create the user service
 	service := userservice.NewUserService(repository)
+	api := userservice.New(service, []byte(jwtKey))
+	var isSwagger = os.Getenv("SWAGGER") == "true"
+	if isSwagger {
+		api.Router.PathPrefix(server.SWAGGER_PATH).Handler(httpSwagger.WrapHandler)
+	}
 
 	// Start the rest service
-	userservice.New(service, []byte(jwtKey)).
+	api.
 		WithLogger(logger).
 		WithLogRequest().
 		WithVersion("1.0.0").
