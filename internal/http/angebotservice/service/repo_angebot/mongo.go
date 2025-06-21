@@ -17,6 +17,11 @@ type MongoRepo struct {
 	offerCollection *mongo.Collection
 }
 
+func (r *MongoRepo) ReleaseOffer(offerId uuid.UUID) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 const (
 	CollectionName = "offers"
 	DBName         = "MyCargonaut"

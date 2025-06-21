@@ -22,6 +22,16 @@ type ChatController struct {
 	*auth.AuthMiddleware
 }
 
+type CreateChatRequest struct {
+	UserIds []uuid.UUID `json:"userIds"`
+}
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+type SendMessageRequest struct {
+	Content string `json:"content"`
+}
+
 func New(secret []byte, repo repo.Repository, natsUrl string) *ChatController {
 	svc := &ChatController{
 		Server:         server.NewServer(),
@@ -46,10 +56,10 @@ func (c *ChatController) setupRoutes() {
 // @Accept       json
 // @Produce      json
 // @Auth         JWT
-// @Success      200  {array}  repo.Chat  "List of chats"
+// @Success      200  {array}  []repo.Chat  "List of chats"
 // @Failure      400  {object}  string  "Invalid user ID"
 // @Failure      500  {object}  string  "Server error"
-// @Router       /chats [get]
+// @Router       /chat [get]
 func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) {
 	var (
 		userId uuid.UUID
@@ -74,6 +84,18 @@ func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// CreateChat godoc
+// @Summary      Create a new chat
+// @Description  Creates a new chat between the authenticated user and the specified list of users.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        body body CreateChatRequest true "List of user IDs to start chat with"
+// @Success      200  {string}  string  "ID of the newly created chat"
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /chat [post]
 func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 	var (
 		userId uuid.UUID
@@ -105,6 +127,18 @@ func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(chatId)
 }
 
+// HandleGetChat godoc
+// @Summary      Get chat messages
+// @Description  Retrieves all messages in a specific chat that the user is part of.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        chatId path string true "Chat ID (UUID)"
+// @Success      200  {array}  repo.Message  "List of messages in the chat"
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /chat/{chatId} [get]
 func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	chatId, err := uuid.Parse(vars["chatId"])
@@ -132,6 +166,19 @@ func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleSendMessage godoc
+// @Summary      Send message
+// @Description  Sends a message to a specific chat.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        chatId path string true "Chat ID (UUID)"
+// @Param        body body SendMessageRequest true "Message content"
+// @Success      201
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /chat/{chatId}/messages [post]
 func (c *ChatController) HandleSendMessage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	chatId, err := uuid.Parse(vars["chatId"])

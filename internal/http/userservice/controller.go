@@ -32,6 +32,14 @@ type UserController struct {
 	ratingClient *ratingclient.RatingClient
 }
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+type UserCredentials struct {
+	Email    string
+	Password string
+}
+
 func New(svc *UserService, secret []byte) *UserController {
 	err := godotenv.Load()
 	if err != nil {
@@ -94,6 +102,17 @@ func (c *UserController) setupRoutes() {
 	c.WithHandlerFunc("/{id}/rating", c.HandleGetRating, http.MethodGet)
 }
 
+// HandleGetRating godoc
+// @Summary      Get ratings for a user
+// @Description  Retrieves ratings by user ID.
+// @Tags         ratings
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Success      200  {array}  []ratingservice.Rating  "User ratings"
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /users/{id}/ratings [get]
 func (c *UserController) HandleGetRating(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.Parse(vars["id"])
@@ -109,6 +128,18 @@ func (c *UserController) HandleGetRating(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// beginRegistration godoc
+// @Summary      Begin WebAuthn registration
+// @Description  Starts the WebAuthn registration process for the authenticated user.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "User JWT token"
+// @Success      200  {object}  protocol.CredentialCreation "Registration options"
+// @Failure      400  {object}  ErrorResponse "Invalid user ID"
+// @Failure      404  {object}  ErrorResponse "User not found"
+// @Failure      500  {object}  ErrorResponse "Internal server error"
+// @Router       /users/webauthn/register/options [post]
 func (c *UserController) beginRegistration(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
@@ -138,6 +169,18 @@ func (c *UserController) beginRegistration(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// finishRegistration godoc
+// @Summary      Finish WebAuthn registration
+// @Description  Completes the WebAuthn registration process for the authenticated user.
+// @Tags         users
+// @Accept       json
+// @Produce      plain
+// @Param        Authorization header string true "User JWT token"
+// @Success      200  {string}  string  "Registrierung erfolgreich"
+// @Failure      400  {object}  ErrorResponse "Ungültige Anfrage oder Registrierung fehlgeschlagen"
+// @Failure      404  {object}  ErrorResponse "Benutzer nicht gefunden"
+// @Failure      500  {object}  ErrorResponse "Interner Serverfehler"
+// @Router       /users/webauthn/register [post]
 func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
@@ -170,6 +213,18 @@ func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// beginLogin godoc
+// @Summary      Begin WebAuthn login
+// @Description  Starts the WebAuthn login process by generating login options for the user.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        email query string true "User email address"
+// @Success      200  {object}  protocol.CredentialAssertion "Login options"
+// @Failure      400  {object}  ErrorResponse "Ungültige E-Mail-Adresse"
+// @Failure      404  {object}  ErrorResponse "Benutzer nicht gefunden"
+// @Failure      500  {object}  ErrorResponse "Interner Serverfehler"
+// @Router       /users/webauthn/login/options [get]
 func (c *UserController) beginLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if _, err := mail.ParseAddress(email); email == "" || err != nil {
@@ -197,6 +252,19 @@ func (c *UserController) beginLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// finishLogin godoc
+// @Summary      Complete WebAuthn login
+// @Description  Verifies the WebAuthn login and returns a JWT token upon success.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        email query string true "User email address"
+// @Success      200  {object}  map[string]string "JWT token"
+// @Failure      400  {object}  ErrorResponse "Ungültige E-Mail-Adresse"
+// @Failure      401  {object}  ErrorResponse "Authentifizierung fehlgeschlagen"
+// @Failure      404  {object}  ErrorResponse "Benutzer nicht gefunden"
+// @Failure      500  {object}  ErrorResponse "Interner Serverfehler"
+// @Router       /users/webauthn/login [post]
 func (c *UserController) finishLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if _, err := mail.ParseAddress(email); email == "" || err != nil {
@@ -226,6 +294,15 @@ func (c *UserController) finishLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUsers godoc
+// @Summary      Get all users
+// @Description  Retrieves a list of all users.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   []repo.User  "List of users"
+// @Failure      500  {string}  string     "Server error"
+// @Router       /users [get]
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := c.service.GetUsers()
 	if err != nil {
@@ -240,6 +317,18 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUserByEmail godoc
+// @Summary      Get user by email
+// @Description  Retrieves a user by their email address provided as a query parameter.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        email  query  string  true  "User email address"
+// @Success      200  {object}  repo.User  "User data"
+// @Failure      400  {string}  string  "Invalid email address"
+// @Failure      404  {string}  string  "User not found"
+// @Failure      500  {string}  string  "Server error"
+// @Router       /users/email [get]
 func (c *UserController) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	user, err := c.service.repo.GetUserByEmail(email)
@@ -255,6 +344,17 @@ func (c *UserController) GetUserByEmail(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// CreateUser godoc
+// @Summary      Create a new user
+// @Description  Creates a new user with the provided JSON payload.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      repo.User  true  "User data"
+// @Success      200   {object}  map[string]string  "ID of the created user"
+// @Failure      400   {string}  string  "Invalid request payload"
+// @Failure      500   {string}  string  "Server error"
+// @Router       /users [post]
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user repo.User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -277,6 +377,18 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUser godoc
+// @Summary      Get user by ID
+// @Description  Retrieves a user by their unique ID provided as a path parameter. Password is omitted in the response.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "User ID (UUID)"
+// @Success      200  {object}  repo.User  "User data without password"
+// @Failure      400  {string}  string  "Invalid or missing ID"
+// @Failure      404  {string}  string  "User not found"
+// @Failure      500  {string}  string  "Server error"
+// @Router       /users/{id} [get]
 func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -307,6 +419,18 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateUser godoc
+// @Summary      Update user
+// @Description  Updates the user identified by the ID provided in the request header. The user data is passed as JSON in the request body.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        UserIdHeader  header  string     true  "User ID (UUID)"
+// @Param        user          body    repo.User  true  "User data to update"
+// @Success      200           {object} map[string]string  "Returns the updated user ID"
+// @Failure      400           {string} string  "Invalid or missing ID / Bad request"
+// @Failure      500           {string} string  "Server error updating user"
+// @Router       /users/{id} [put]
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	if id == "" {
@@ -339,6 +463,17 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteUser godoc
+// @Summary      Delete user
+// @Description  Deletes the user identified by the ID provided in the request header.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        UserIdHeader  header  string  true  "User ID (UUID)"
+// @Success      204  "User deleted successfully, no content"
+// @Failure      400  {string}  string  "Invalid or missing ID"
+// @Failure      500  {string}  string  "Server error deleting user"
+// @Router       /users/{id} [delete]
 func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	if id == "" {
@@ -360,6 +495,18 @@ func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// GetLoginToken godoc
+// @Summary      Get login token
+// @Description  Authenticates a user with email and password and returns a JWT token valid for 24 hours.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body  UserCredentials  true  "User credentials"
+// @Success      200  {object}  map[string]string  "JWT token"
+// @Failure      400  {string}  string  "Fehler beim Lesen der Anfrage"
+// @Failure      401  {string}  string  "Falsches Passwort"
+// @Failure      500  {string}  string  "Fehler beim Generieren des Tokens oder Benutzer nicht gefunden"
+// @Router       /users/login [post]
 func (c *UserController) GetLoginToken(w http.ResponseWriter, r *http.Request) {
 	credentials := struct {
 		Email    string `json:"email"`

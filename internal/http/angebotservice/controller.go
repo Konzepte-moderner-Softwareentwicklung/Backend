@@ -30,6 +30,14 @@ type OfferController struct {
 	*nats.Conn
 }
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+type CreateOfferResponse struct {
+	ID       string `json:"id"`
+	ImageURL string `json:"image_url"`
+}
+
 func New(svc service.Service, secret []byte) *OfferController {
 	NATS_URL := os.Getenv("NATS_URL")
 	conn, err := nats.Connect(NATS_URL)
@@ -56,6 +64,19 @@ func (c *OfferController) setupRoutes() {
 	c.WithHandlerFunc("/{id}/rating", c.EnsureJWT(c.handlePostRating), http.MethodPost)
 }
 
+// OccupyOffer godoc
+// @Summary      Occupy an offer
+// @Description  Marks an offer as occupied by the user, specifying the desired space parameters.
+// @Tags         offers
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        id path string true "Offer ID (UUID)"
+// @Param        body body  repoangebot.Space true "Space details for the occupation"
+// @Success      200
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /angebot/{id}/occupy [post]
 func (c *OfferController) OccupyOffer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.Parse(vars["id"])
@@ -80,6 +101,19 @@ func (c *OfferController) OccupyOffer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handlePostRating godoc
+// @Summary      Post a rating
+// @Description  Submits a rating for a specific offer.
+// @Tags         ratings
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        id path string true "Offer ID (UUID)"
+// @Param        body body ratingservice.Rating true "Rating object"
+// @Success      200
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /angebot/{id}/rating [post]
 func (c *OfferController) handlePostRating(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_, err := uuid.Parse(vars["id"])
@@ -104,9 +138,21 @@ func (c *OfferController) handlePostRating(w http.ResponseWriter, r *http.Reques
 	if err = c.Publish("rating."+userId.String(), body); err != nil {
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }
 
+// handleCreateOffer godoc
+// @Summary      Create a new offer
+// @Description  Creates a new offer by the authenticated user, generates image URLs.
+// @Tags         offers
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        body body repoangebot.Offer true "Offer data"
+// @Success      200  {object}  CreateOfferResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /angebot [post]
 func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
@@ -140,6 +186,19 @@ func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// handleGetOffer godoc
+// @Summary      Get offer details
+// @Description  Retrieves detailed information about a specific offer by ID.
+// @Tags         offers
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        id path string true "Offer ID (UUID)"
+// @Success      200  {object}  repoangebot.Offer
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /angebot/{id} [get]
 func (c *OfferController) handleGetOffer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -160,6 +219,18 @@ func (c *OfferController) handleGetOffer(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// handleGetOfferByFilter godoc
+// @Summary      Get offers by filter
+// @Description  Retrieves a list of offers filtered by the specified criteria.
+// @Tags         offers
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        body body repoangebot.Filter true "Filter criteria"
+// @Success      200  {array}   []repoangebot.Offer
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /angebot/filter [post]
 func (c *OfferController) handleGetOfferByFilter(w http.ResponseWriter, r *http.Request) {
 	var filter repoangebot.Filter
 	if err := json.NewDecoder(r.Body).Decode(&filter); err != nil {
