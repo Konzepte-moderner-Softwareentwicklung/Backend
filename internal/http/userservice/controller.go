@@ -35,6 +35,10 @@ type UserController struct {
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
+type UserCredentials struct {
+	Email    string
+	Password string
+}
 
 func New(svc *UserService, secret []byte) *UserController {
 	err := godotenv.Load()
@@ -131,11 +135,11 @@ func (c *UserController) HandleGetRating(w http.ResponseWriter, r *http.Request)
 // @Accept       json
 // @Produce      json
 // @Param        Authorization header string true "User JWT token"
-// @Success      200  {object}  webauthn.PublicKeyCredentialCreationOptions "Registration options"
+// @Success      200  {object}  protocol.CredentialCreation "Registration options"
 // @Failure      400  {object}  ErrorResponse "Invalid user ID"
 // @Failure      404  {object}  ErrorResponse "User not found"
 // @Failure      500  {object}  ErrorResponse "Internal server error"
-// @Router       /users/registration/begin [post]
+// @Router       /users/webauthn/register/options [post]
 func (c *UserController) beginRegistration(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
@@ -176,7 +180,7 @@ func (c *UserController) beginRegistration(w http.ResponseWriter, r *http.Reques
 // @Failure      400  {object}  ErrorResponse "Ungültige Anfrage oder Registrierung fehlgeschlagen"
 // @Failure      404  {object}  ErrorResponse "Benutzer nicht gefunden"
 // @Failure      500  {object}  ErrorResponse "Interner Serverfehler"
-// @Router       /users/registration/finish [post]
+// @Router       /users/webauthn/register [post]
 func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
@@ -216,11 +220,11 @@ func (c *UserController) finishRegistration(w http.ResponseWriter, r *http.Reque
 // @Accept       json
 // @Produce      json
 // @Param        email query string true "User email address"
-// @Success      200  {object}  webauthn.LoginOptions "Login options"
+// @Success      200  {object}  protocol.CredentialAssertion "Login options"
 // @Failure      400  {object}  ErrorResponse "Ungültige E-Mail-Adresse"
 // @Failure      404  {object}  ErrorResponse "Benutzer nicht gefunden"
 // @Failure      500  {object}  ErrorResponse "Interner Serverfehler"
-// @Router       /users/login/begin [get]
+// @Router       /users/webauthn/login/options [get]
 func (c *UserController) beginLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if _, err := mail.ParseAddress(email); email == "" || err != nil {
@@ -260,7 +264,7 @@ func (c *UserController) beginLogin(w http.ResponseWriter, r *http.Request) {
 // @Failure      401  {object}  ErrorResponse "Authentifizierung fehlgeschlagen"
 // @Failure      404  {object}  ErrorResponse "Benutzer nicht gefunden"
 // @Failure      500  {object}  ErrorResponse "Interner Serverfehler"
-// @Router       /users/login/finish [post]
+// @Router       /users/webauthn/login [post]
 func (c *UserController) finishLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if _, err := mail.ParseAddress(email); email == "" || err != nil {
@@ -426,7 +430,7 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Success      200           {object} map[string]string  "Returns the updated user ID"
 // @Failure      400           {string} string  "Invalid or missing ID / Bad request"
 // @Failure      500           {string} string  "Server error updating user"
-// @Router       /users [put]
+// @Router       /users/{id} [put]
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	if id == "" {
@@ -469,7 +473,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Success      204  "User deleted successfully, no content"
 // @Failure      400  {string}  string  "Invalid or missing ID"
 // @Failure      500  {string}  string  "Server error deleting user"
-// @Router       /users [delete]
+// @Router       /users/{id} [delete]
 func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	if id == "" {
@@ -497,7 +501,7 @@ func (c *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        credentials  body  struct{Email string; Password string}  true  "User credentials"
+// @Param        credentials  body  UserCredentials  true  "User credentials"
 // @Success      200  {object}  map[string]string  "JWT token"
 // @Failure      400  {string}  string  "Fehler beim Lesen der Anfrage"
 // @Failure      401  {string}  string  "Falsches Passwort"

@@ -56,10 +56,10 @@ func (c *ChatController) setupRoutes() {
 // @Accept       json
 // @Produce      json
 // @Auth         JWT
-// @Success      200  {array}  repo.Chat  "List of chats"
+// @Success      200  {array}  []repo.Chat  "List of chats"
 // @Failure      400  {object}  string  "Invalid user ID"
 // @Failure      500  {object}  string  "Server error"
-// @Router       /chats [get]
+// @Router       /chat [get]
 func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) {
 	var (
 		userId uuid.UUID
@@ -95,7 +95,7 @@ func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) 
 // @Success      200  {string}  string  "ID of the newly created chat"
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /chats [post]
+// @Router       /chat [post]
 func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 	var (
 		userId uuid.UUID
@@ -138,7 +138,7 @@ func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {array}  repo.Message  "List of messages in the chat"
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /chats/{chatId} [get]
+// @Router       /chat/{chatId} [get]
 func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	chatId, err := uuid.Parse(vars["chatId"])
@@ -178,7 +178,7 @@ func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 // @Success      201
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /chats/{chatId}/messages [post]
+// @Router       /chat/{chatId}/messages [post]
 func (c *ChatController) HandleSendMessage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	chatId, err := uuid.Parse(vars["chatId"])

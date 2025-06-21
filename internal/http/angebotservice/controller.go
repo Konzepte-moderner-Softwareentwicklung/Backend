@@ -76,7 +76,7 @@ func (c *OfferController) setupRoutes() {
 // @Success      200
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /offers/{id}/occupy [post]
+// @Router       /angebot/{id}/occupy [post]
 func (c *OfferController) OccupyOffer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.Parse(vars["id"])
@@ -113,7 +113,7 @@ func (c *OfferController) OccupyOffer(w http.ResponseWriter, r *http.Request) {
 // @Success      200
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /offers/{id}/rating [post]
+// @Router       /angebot/{id}/rating [post]
 func (c *OfferController) handlePostRating(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_, err := uuid.Parse(vars["id"])
@@ -152,7 +152,7 @@ func (c *OfferController) handlePostRating(w http.ResponseWriter, r *http.Reques
 // @Failure      400  {object}  ErrorResponse
 // @Failure      401  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /offers [post]
+// @Router       /angebot [post]
 func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get(UserIdHeader)
 	uid, err := uuid.Parse(id)
@@ -198,7 +198,7 @@ func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Reque
 // @Failure      400  {object}  ErrorResponse
 // @Failure      401  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /offers/{id} [get]
+// @Router       /angebot/{id} [get]
 func (c *OfferController) handleGetOffer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -230,7 +230,7 @@ func (c *OfferController) handleGetOffer(w http.ResponseWriter, r *http.Request)
 // @Success      200  {array}   []repoangebot.Offer
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /offers/filter [post]
+// @Router       /angebot/filter [post]
 func (c *OfferController) handleGetOfferByFilter(w http.ResponseWriter, r *http.Request) {
 	var filter repoangebot.Filter
 	if err := json.NewDecoder(r.Body).Decode(&filter); err != nil {

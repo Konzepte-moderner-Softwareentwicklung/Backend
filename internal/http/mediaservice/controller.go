@@ -57,7 +57,7 @@ func (mc *MediaController) setupRoutes() {
 // @Produce      plain
 // @Success      200  {string}  string  "Hello World"
 // @Failure      500  {object}  ErrorResponse
-// @Router       /media [get]
+// @Router       /media/image [get]
 func (mc *MediaController) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("Hello World")); err != nil {
 		mc.GetLogger().Err(err)
@@ -77,7 +77,7 @@ func (mc *MediaController) handleIndex(w http.ResponseWriter, r *http.Request) {
 //
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /media/upload [post]
+// @Router       /media/image [post]
 func (mc *MediaController) UploadPicture(w http.ResponseWriter, r *http.Request) {
 	img, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -126,7 +126,7 @@ func (mc *MediaController) UploadPicture(w http.ResponseWriter, r *http.Request)
 // @Success      200  {file}  []byte
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /media/{id} [get]
+// @Router       /media/image/{id} [get]
 func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["id"]
@@ -159,7 +159,7 @@ func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Reques
 // @Success      200  {array}  []string "List of image URLs"
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /media/links/{id} [get]
+// @Router       /media/multi/{id} [get]
 func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -198,7 +198,7 @@ func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Reque
 // @Success      200
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
-// @Router       /media/links/{id} [post]
+// @Router       /media/multi/{id} [post]
 func (mc *MediaController) UploadToCompoundLinks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
