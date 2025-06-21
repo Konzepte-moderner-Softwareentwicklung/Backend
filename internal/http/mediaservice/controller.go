@@ -25,6 +25,10 @@ type MediaController struct {
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
+type UploadResponse struct {
+	Name    string `json:"name"`
+	Success bool   `json:"success"`
+}
 
 func New(svc *service.MediaService) *MediaController {
 	svr := &MediaController{
@@ -69,10 +73,7 @@ func (mc *MediaController) handleIndex(w http.ResponseWriter, r *http.Request) {
 // @Param        Authorization header string true "JWT token"
 // @Param        file body []byte true "Image file bytes"
 //
-//	@Success      200  {object}  struct {
-//	             Name    string `json:"name"`
-//	             Success bool   `json:"success"`
-//	         }
+//	@Success      200  {object}  UploadResponse
 //
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
