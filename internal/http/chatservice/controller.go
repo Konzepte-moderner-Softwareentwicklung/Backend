@@ -25,9 +25,11 @@ type ChatController struct {
 type CreateChatRequest struct {
 	UserIds []uuid.UUID `json:"userIds"`
 }
-
 type ErrorResponse struct {
 	Message string `json:"message"`
+}
+type SendMessageRequest struct {
+	Content string `json:"content"`
 }
 
 func New(secret []byte, repo repo.Repository, natsUrl string) *ChatController {
