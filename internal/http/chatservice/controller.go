@@ -74,6 +74,18 @@ func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// CreateChat godoc
+// @Summary      Create a new chat
+// @Description  Creates a new chat between the authenticated user and the specified list of users.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        body body CreateChatRequest true "List of user IDs to start chat with"
+// @Success      200  {string}  string  "ID of the newly created chat"
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /chats [post]
 func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 	var (
 		userId uuid.UUID
@@ -105,6 +117,18 @@ func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(chatId)
 }
 
+// HandleGetChat godoc
+// @Summary      Get chat messages
+// @Description  Retrieves all messages in a specific chat that the user is part of.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        chatId path string true "Chat ID (UUID)"
+// @Success      200  {array}  repo.Message  "List of messages in the chat"
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /chats/{chatId} [get]
 func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	chatId, err := uuid.Parse(vars["chatId"])
@@ -132,6 +156,19 @@ func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleSendMessage godoc
+// @Summary      Send message
+// @Description  Sends a message to a specific chat.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        chatId path string true "Chat ID (UUID)"
+// @Param        body body SendMessageRequest true "Message content"
+// @Success      201
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /chats/{chatId}/messages [post]
 func (c *ChatController) HandleSendMessage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	chatId, err := uuid.Parse(vars["chatId"])
