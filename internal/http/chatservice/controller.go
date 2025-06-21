@@ -22,6 +22,14 @@ type ChatController struct {
 	*auth.AuthMiddleware
 }
 
+type CreateChatRequest struct {
+	UserIds []uuid.UUID `json:"userIds"`
+}
+
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+
 func New(secret []byte, repo repo.Repository, natsUrl string) *ChatController {
 	svc := &ChatController{
 		Server:         server.NewServer(),
