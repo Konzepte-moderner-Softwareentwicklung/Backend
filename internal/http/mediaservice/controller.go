@@ -22,6 +22,10 @@ type MediaController struct {
 	*server.Server
 }
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+
 func New(svc *service.MediaService) *MediaController {
 	svr := &MediaController{
 		mediaservice: svc,
@@ -42,12 +46,37 @@ func (mc *MediaController) setupRoutes() {
 	mc.WithHandlerFunc("/image/{id}", mc.DownloadPicture, http.MethodGet)
 }
 
+// handleIndex godoc
+// @Summary      Health check endpoint
+// @Description  Simple endpoint to check if the media service is running.
+// @Tags         media
+// @Produce      plain
+// @Success      200  {string}  string  "Hello World"
+// @Failure      500  {object}  ErrorResponse
+// @Router       /media [get]
 func (mc *MediaController) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("Hello World")); err != nil {
 		mc.GetLogger().Err(err)
 	}
 }
 
+// UploadPicture godoc
+// @Summary      Upload a picture
+// @Description  Uploads an image for the authenticated user.
+// @Tags         media
+// @Accept       octet-stream
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        file body []byte true "Image file bytes"
+//
+//	@Success      200  {object}  struct {
+//	             Name    string `json:"name"`
+//	             Success bool   `json:"success"`
+//	         }
+//
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /media/upload [post]
 func (mc *MediaController) UploadPicture(w http.ResponseWriter, r *http.Request) {
 	img, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -87,6 +116,16 @@ func (mc *MediaController) UploadPicture(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// DownloadPicture godoc
+// @Summary      Download a picture
+// @Description  Downloads an image by its name.
+// @Tags         media
+// @Produce      image/jpeg
+// @Param        id path string true "Image name"
+// @Success      200  {file}  []byte
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /media/{id} [get]
 func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["id"]
@@ -110,6 +149,16 @@ func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// GetCompoundLinks godoc
+// @Summary      Get compound image links
+// @Description  Returns a list of image URLs associated with a given user ID.
+// @Tags         media
+// @Produce      json
+// @Param        id path string true "User UUID"
+// @Success      200  {array}  string "List of image URLs"
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /media/links/{id} [get]
 func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -137,6 +186,18 @@ func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// UploadToCompoundLinks godoc
+// @Summary      Upload image to compound links
+// @Description  Uploads an image to the compound links associated with the given ID.
+// @Tags         media
+// @Accept       octet-stream
+// @Param        id path string true "Compound Link ID"
+// @Param        Authorization header string true "User JWT token"
+// @Produce      json
+// @Success      200
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /media/links/{id} [post]
 func (mc *MediaController) UploadToCompoundLinks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
