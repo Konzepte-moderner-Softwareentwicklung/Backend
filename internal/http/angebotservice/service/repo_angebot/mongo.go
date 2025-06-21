@@ -2,7 +2,9 @@ package repoangebot
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	"github.com/google/uuid"
@@ -49,9 +51,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 	var offers []*Offer
 
 	// Nur Angebote laden, die nicht belegt sind
-	cur, err := r.offerCollection.Find(context.Background(), bson.M{
-		"occupied": false,
-	})
+	cur, err := r.offerCollection.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 		}
 
 		// Transportgröße prüfen
-		if !offer.CanTransport.Fits(ft.SpaceNeeded.Items...) {
+		if !offer.HasEnoughFreeSpace(ft.SpaceNeeded) {
 			continue
 		}
 
@@ -89,7 +89,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 
 		// Nutzerbezogene Filter (z. B. für eigene oder belegte Angebote)
 		if ft.User != uuid.Nil {
-			if ft.User != offer.OccupiedBy && ft.User != offer.Creator {
+			if !slices.Contains(offer.OccupiedBy, ft.User) && offer.Creator != ft.User {
 				continue
 			}
 		}
@@ -121,18 +121,29 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 	return offers, nil
 }
 
-func (r *MongoRepo) OccupieOffer(offerId, userId uuid.UUID) error {
-	_, err := r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, bson.M{"$set": bson.M{"occupied": true, "occupiedBy": userId}})
+func (r *MongoRepo) OccupieOffer(offerId, userId uuid.UUID, space Space) error {
+	var offer Offer
+	err := r.offerCollection.FindOne(context.Background(), bson.M{"_id": offerId}).Decode(&offer)
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func (r *MongoRepo) ReleaseOffer(offerId uuid.UUID) error {
-	_, err := r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, bson.M{"$set": bson.M{"occupied": false, "occupiedBy": nil}})
-	if err != nil {
-		return err
+	// Prüfen, ob der Platz ausreicht
+	if !offer.HasEnoughFreeSpace(space) {
+		return fmt.Errorf("nicht genug freier Platz im Angebot")
 	}
-	return nil
+
+	// Space und User zu den belegten hinzufügen
+	offer.OccupiedBy = append(offer.OccupiedBy, userId)
+	offer.OccupiedSpace = offer.OccupiedSpace.Add(space)
+
+	update := bson.M{
+		"$set": bson.M{
+			"occupiedBy":    offer.OccupiedBy,
+			"occupiedSpace": offer.OccupiedSpace,
+		},
+	}
+
+	_, err = r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, update)
+	return err
 }

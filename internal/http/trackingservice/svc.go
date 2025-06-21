@@ -74,7 +74,7 @@ func (s *TrackingService) Start() {
 		s.logger.Info().Dict("location", zerolog.Dict().
 			Float64("lat", trackingRequest.Location.Latitude).
 			Float64("lon", trackingRequest.Location.Longitude)).
-		Msg("user tracking")
+			Msg("user tracking")
 
 		if err := s.mongoClient.SaveTracking(repo.Tracking{
 			UserID:   userID,
@@ -83,12 +83,14 @@ func (s *TrackingService) Start() {
 			s.logger.Error().Err(err).Msg("Failed to save tracking")
 			return
 		}
-
-		if err := s.queue.Publish("user."+offer.OccupiedBy.String(), msg.Data); err != nil {
-			s.logger.Error().Err(err).Msg("Failed to publish tracking request")
-			return
+		for _, occupied := range offer.OccupiedBy {
+			if err := s.queue.Publish("user."+occupied.String(), msg.Data); err != nil {
+				s.logger.Error().Err(err).Msg("Failed to publish tracking request")
+				return
+			}
+			s.logger.Info().Msgf("Published tracking request for user %s to offer %s, %s", userID, offer.ID, string(msg.Data))
 		}
-		s.logger.Info().Msgf("Published tracking request for user %s to offer %s, %s", userID, offer.ID, string(msg.Data))
+
 	})
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Failed to subscribe to tracking requests")
