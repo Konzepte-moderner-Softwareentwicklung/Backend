@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 const (
@@ -122,4 +123,11 @@ func GetScheme(r *http.Request) string {
 func (s *Server) ListenAndServe() {
 	s.log.Print("Server started on port ", s.port)
 	s.log.Error().AnErr("startup", http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.Router))
+}
+
+const SWAGGER_PATH = "/swagger/"
+
+func (s *Server) WithSwagger() *Server {
+	s.Router.PathPrefix(SWAGGER_PATH).Handler(httpSwagger.Handler())
+	return s
 }

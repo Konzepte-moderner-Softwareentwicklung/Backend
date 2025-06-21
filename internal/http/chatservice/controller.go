@@ -39,6 +39,17 @@ func (c *ChatController) setupRoutes() {
 	c.WithHandlerFunc("/{chatId}", c.EnsureJWT(c.HandleSendMessage), http.MethodPost)
 }
 
+// HandleGetChats godoc
+// @Summary      Get user chats
+// @Description  Retrieves all chat conversations for a specific user.
+// @Tags         chats
+// @Accept       json
+// @Produce      json
+// @Auth         JWT
+// @Success      200  {array}  repo.Chat  "List of chats"
+// @Failure      400  {object}  string  "Invalid user ID"
+// @Failure      500  {object}  string  "Server error"
+// @Router       /chats [get]
 func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) {
 	var (
 		userId uuid.UUID
