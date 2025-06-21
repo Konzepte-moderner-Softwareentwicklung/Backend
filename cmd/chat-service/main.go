@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"os"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service/repo"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/logstash"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/version"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -22,9 +24,14 @@ var (
 	port      int
 )
 
+//go:embed version.json
+var versionJSON string
+
 // @title Chat Service API
 // @version 1.0
 // @description This is the API for the Chat Service
+//
+//go:generate go run ../version/main.go
 func main() {
 	if err := godotenv.Load(); err != nil {
 		panic(err)
@@ -49,7 +56,7 @@ func main() {
 	}
 
 	logger := logstash.NewZerologLogger("chat-service", level)
-
+	logger = version.LoggerWithVersion(versionJSON, logger)
 	svc := chatservice.New([]byte(jwtSecret), repo, natsUrl)
 
 	var isSwagger = os.Getenv("SWAGGER") == "true"

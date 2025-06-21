@@ -1,9 +1,12 @@
 package main
 
 import (
+	_ "embed"
+
 	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/rating-service/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/version"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	"log"
@@ -26,9 +29,14 @@ var (
 	mongoURL  string
 )
 
+//go:embed version.json
+var versionJSON string
+
 // @title Rating Service API
 // @version 1.0
 // @description This is the API for the Rating Service
+//
+//go:generate go run ../version/main.go
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -55,6 +63,7 @@ func main() {
 
 	// Initialize logger
 	logger := logstash.NewZerologLogger("rating-service", loglevel)
+	logger = version.LoggerWithVersion(versionJSON, logger)
 
 	// Create the user service
 

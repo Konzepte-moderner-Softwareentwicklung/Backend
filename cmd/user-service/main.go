@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 
+	_ "embed"
+
 	_ "github.com/Konzepte-moderner-Softwareentwicklung/Backend/cmd/user-service/docs"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
@@ -27,9 +29,14 @@ var (
 	jwtKey    string
 )
 
+//go:embed version.json
+var versionJSON string
+
 // @title User Service API
 // @version 1.0
 // @description This is the API for the User Service
+//
+//go:generate go run ../version/main.go
 func main() {
 	err := godotenv.Load()
 	if err != nil {
