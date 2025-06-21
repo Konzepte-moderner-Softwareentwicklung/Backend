@@ -28,8 +28,8 @@ func (s *Service) CreateOffer(offer *repoangebot.Offer, url string) (uuid.UUID, 
 	return offer.ID, s.repo.CreateOffer(offer)
 }
 
-func (s *Service) OccupieOffer(offerId uuid.UUID, userId uuid.UUID) error {
-	return s.repo.OccupieOffer(offerId, userId)
+func (s *Service) OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space repoangebot.Space) error {
+	return s.repo.OccupieOffer(offerId, userId, space)
 }
 
 func (s *Service) GetOffersByFilter(filter repoangebot.Filter) ([]*repoangebot.Offer, error) {
