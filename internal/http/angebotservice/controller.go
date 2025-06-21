@@ -33,6 +33,10 @@ type OfferController struct {
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
+type CreateOfferResponse struct {
+	ID       string `json:"id"`
+	ImageURL string `json:"image_url"`
+}
 
 func New(svc service.Service, secret []byte) *OfferController {
 	NATS_URL := os.Getenv("NATS_URL")
