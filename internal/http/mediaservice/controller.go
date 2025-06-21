@@ -156,7 +156,7 @@ func (mc *MediaController) DownloadPicture(w http.ResponseWriter, r *http.Reques
 // @Tags         media
 // @Produce      json
 // @Param        id path string true "User UUID"
-// @Success      200  {array}  string "List of image URLs"
+// @Success      200  {array}  []string "List of image URLs"
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /media/links/{id} [get]
