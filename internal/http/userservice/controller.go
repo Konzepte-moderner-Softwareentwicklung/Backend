@@ -3,13 +3,14 @@ package userservice
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/ratingclient"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"net/mail"
 	"os"
 	"time"
+
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/ratingclient"
+	"github.com/joho/godotenv"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/hasher"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/userservice/repo"
@@ -82,6 +83,7 @@ func (c *UserController) setupRoutes() {
 		})
 
 	// user
+	c.WithHandlerFunc("/self", c.EnsureJWT(c.GetSelfId), http.MethodGet)
 	c.WithHandlerFunc("/", c.GetUsers, http.MethodGet)
 	c.WithHandlerFunc("/", c.CreateUser, http.MethodPost)
 	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.UpdateUser), http.MethodPut)
@@ -100,6 +102,18 @@ func (c *UserController) setupRoutes() {
 
 	// rating
 	c.WithHandlerFunc("/{id}/rating", c.HandleGetRating, http.MethodGet)
+}
+
+func (c *UserController) GetSelfId(w http.ResponseWriter, r *http.Request) {
+	var (
+		userID uuid.UUID
+		err    error
+	)
+	if userID, err = uuid.Parse(r.Header.Get(UserIdHeader)); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Fprint(w, userID)
 }
 
 // HandleGetRating godoc
