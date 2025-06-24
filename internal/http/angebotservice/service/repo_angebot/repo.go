@@ -30,9 +30,28 @@ func (l *Location) DistanceTo(location Location) float64 {
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
+type SpaceSlice []Space
+
+func (s SpaceSlice) Sum() Space {
+	var result Space
+	for _, space := range s {
+		result = result.Add(space)
+	}
+	return result
+}
+
+func (s SpaceSlice) Users() []uuid.UUID {
+	var result []uuid.UUID
+	for _, space := range s {
+		result = append(result, space.Occupier)
+	}
+	return result
+}
+
 type Space struct {
-	Items []Item `json:"items"`
-	Seats int    `json:"seats"`
+	Occupier uuid.UUID `json:"occupiedBy"`
+	Items    []Item    `json:"items"`
+	Seats    int       `json:"seats"`
 }
 
 func (s Space) Add(other Space) Space {
@@ -58,31 +77,32 @@ type Size struct {
 }
 
 type Offer struct {
-	ID            uuid.UUID   `json:"id" bson:"_id"`
-	IsGesuch      bool        `json:"isGesuch"`
-	Title         string      `json:"title"`
-	Description   string      `json:"description"`
-	Price         float64     `json:"price"`
-	LocationFrom  Location    `json:"locationFrom"`
-	LocationTo    Location    `json:"locationTo"`
-	Creator       uuid.UUID   `json:"creator"`
-	CreatedAt     time.Time   `json:"createdAt"`
-	IsChat        bool        `json:"isChat"`
-	IsPhone       bool        `json:"isPhone"`
-	IsEmail       bool        `json:"isEmail"`
-	StartDateTime time.Time   `json:"startDateTime"`
-	EndDateTime   time.Time   `json:"endDateTime"`
-	CanTransport  Space       `json:"canTransport"`
-	OccupiedBy    []uuid.UUID `json:"occupiedBy"`
-	OccupiedSpace Space       `json:"occupiedSpace"`
-	Restrictions  []string    `json:"restrictions"`
-	Info          []string    `json:"info"`
-	InfoCar       []string    `json:"infoCar"`
-	ImageURL      string      `json:"imageURL"`
+	ID            uuid.UUID  `json:"id" bson:"_id"`
+	Driver        uuid.UUID  `json:"driver"`
+	IsGesuch      bool       `json:"isGesuch"`
+	Title         string     `json:"title"`
+	Description   string     `json:"description"`
+	Price         float64    `json:"price"`
+	LocationFrom  Location   `json:"locationFrom"`
+	LocationTo    Location   `json:"locationTo"`
+	Creator       uuid.UUID  `json:"creator"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	IsChat        bool       `json:"isChat"`
+	IsPhone       bool       `json:"isPhone"`
+	IsEmail       bool       `json:"isEmail"`
+	StartDateTime time.Time  `json:"startDateTime"`
+	EndDateTime   time.Time  `json:"endDateTime"`
+	CanTransport  Space      `json:"canTransport"`
+	OccupiedSpace SpaceSlice `json:"occupiedSpace"`
+	PaidSpaces    SpaceSlice `json:"paidSpaces"`
+	Restrictions  []string   `json:"restrictions"`
+	Info          []string   `json:"info"`
+	InfoCar       []string   `json:"infoCar"`
+	ImageURL      string     `json:"imageURL"`
 }
 
 func (o *Offer) HasEnoughFreeSpace(space Space) bool {
-	return o.OccupiedSpace.Add(space).Fits(o.CanTransport)
+	return o.OccupiedSpace.Sum().Add(space).Fits(o.CanTransport)
 }
 
 type Filter struct {
@@ -95,6 +115,7 @@ type Filter struct {
 	User             uuid.UUID `json:"user"`
 	Creator          uuid.UUID `json:"creator"`
 	CurrentTime      time.Time `json:"currentTime"`
+	ID               uuid.UUID `json:"id"`
 }
 
 type Repo interface {
@@ -103,4 +124,5 @@ type Repo interface {
 	CreateOffer(offer *Offer) error
 	OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space Space) error
 	ReleaseOffer(offerId uuid.UUID) error
+	UpdateOffer(offerId uuid.UUID, offer *Offer) error
 }

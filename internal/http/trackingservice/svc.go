@@ -83,7 +83,7 @@ func (s *TrackingService) Start() {
 			s.logger.Error().Err(err).Msg("Failed to save tracking")
 			return
 		}
-		for _, occupied := range offer.OccupiedBy {
+		for _, occupied := range offer.OccupiedSpace.Users() {
 			if err := s.queue.Publish("user."+occupied.String(), msg.Data); err != nil {
 				s.logger.Error().Err(err).Msg("Failed to publish tracking request")
 				return
