@@ -46,6 +46,11 @@ func (r *MongoRepo) CreateOffer(offer *Offer) error {
 	return err
 }
 
+func (r *MongoRepo) UpdateOffer(offerId uuid.UUID, offer *Offer) error {
+	_, err := r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, bson.M{"$set": offer})
+	return err
+}
+
 func (r *MongoRepo) GetOffer(id uuid.UUID) (*Offer, error) {
 	var offer Offer
 	err := r.offerCollection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&offer)
@@ -92,9 +97,14 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 			continue
 		}
 
+		// ID-Filter
+		if ft.ID != uuid.Nil && offer.ID != ft.ID {
+			continue
+		}
+
 		// Nutzerbezogene Filter (z. B. für eigene oder belegte Angebote)
 		if ft.User != uuid.Nil {
-			if !slices.Contains(offer.OccupiedBy, ft.User) && offer.Creator != ft.User {
+			if !slices.Contains(offer.OccupiedSpace.Users(), ft.User) && offer.Creator != ft.User {
 				continue
 			}
 		}
@@ -138,13 +148,17 @@ func (r *MongoRepo) OccupieOffer(offerId, userId uuid.UUID, space Space) error {
 		return fmt.Errorf("nicht genug freier Platz im Angebot")
 	}
 
+	spc := Space{
+		Occupier: userId,
+		Items:    space.Items,
+		Seats:    space.Seats,
+	}
+
 	// Space und User zu den belegten hinzufügen
-	offer.OccupiedBy = append(offer.OccupiedBy, userId)
-	offer.OccupiedSpace = offer.OccupiedSpace.Add(space)
+	offer.OccupiedSpace = append(offer.OccupiedSpace, spc)
 
 	update := bson.M{
 		"$set": bson.M{
-			"occupiedBy":    offer.OccupiedBy,
 			"occupiedSpace": offer.OccupiedSpace,
 		},
 	}

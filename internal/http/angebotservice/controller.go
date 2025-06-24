@@ -60,8 +60,41 @@ func (c *OfferController) setupRoutes() {
 	c.WithHandlerFunc("/", c.EnsureJWT(c.handleCreateOffer), http.MethodPost)
 	c.WithHandlerFunc("/{id}", c.handleGetOffer, http.MethodGet)
 	c.WithHandlerFunc("/{id}/occupy", c.EnsureJWT(c.OccupyOffer), http.MethodPost)
+	c.WithHandlerFunc("/{id}/pay", c.EnsureJWT(c.PayOffer), http.MethodPost)
 
 	c.WithHandlerFunc("/{id}/rating", c.EnsureJWT(c.handlePostRating), http.MethodPost)
+}
+
+// PayOffer godoc
+// @Summary      Pay for an offer
+// @Description  Marks an offer as paid by the user.
+// @Tags         offers
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "JWT token"
+// @Param        id path string true "Offer ID (UUID)"
+// @Success      200
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /angebot/{id}/pay [post]
+func (c *OfferController) PayOffer(w http.ResponseWriter, r *http.Request) {
+	var (
+		vars    = mux.Vars(r)
+		userid  uuid.UUID
+		offerId uuid.UUID
+		err     error
+	)
+	if userid, err = uuid.Parse(r.Header.Get(UserIdHeader)); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if offerId, err = uuid.Parse(vars["id"]); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	c.service.PayOffer(offerId, userid)
 }
 
 // OccupyOffer godoc
