@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/version"
 	"log"
 	"os"
 	"strconv"
@@ -23,10 +24,9 @@ const (
 
 var (
 	isVerbose bool
-	port      int
-	natsURL   string
-	mongoURL  string
-	jwtKey    string
+
+	mongoURL string
+	jwtKey   string
 )
 
 //go:embed version.json
@@ -52,7 +52,6 @@ func main() {
 		isVerbose = true
 	}
 
-	natsURL = os.Getenv("NATS_URL")
 	mongoURL = os.Getenv("MONGO_URL")
 	jwtKey = os.Getenv("JWT_SECRET")
 
@@ -64,6 +63,9 @@ func main() {
 
 	// Initialize logger
 	logger := logstash.NewZerologLogger("user-service", loglevel)
+
+	logger = version.LoggerWithVersion(versionJSON, logger)
+
 	repository, err := repo.NewMongoRepo(mongoURL)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to create MongoDB repository")

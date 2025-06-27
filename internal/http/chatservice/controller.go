@@ -124,7 +124,10 @@ func (c *ChatController) CreateChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(chatId)
+	err = json.NewEncoder(w).Encode(chatId)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // HandleGetChat godoc

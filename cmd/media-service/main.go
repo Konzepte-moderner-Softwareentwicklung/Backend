@@ -23,7 +23,6 @@ const (
 )
 
 var (
-	port            int
 	isVerbose       bool = false
 	minioUrl        string
 	accessKeyID     string

@@ -42,6 +42,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
-	json.NewEncoder(file).Encode(GetInfo())
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	err = json.NewEncoder(file).Encode(GetInfo())
+	if err != nil {
+		panic(err)
+	}
+
 }

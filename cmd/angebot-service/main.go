@@ -24,7 +24,6 @@ const (
 )
 
 var (
-	port      int  = DEFAULT_PORT
 	isVerbose bool = false
 	mongoUrl  string
 	jwtSecret string

@@ -21,7 +21,6 @@ var (
 	mongoUrl  string
 	natsUrl   string
 	isVerbose bool = false
-	port      int
 )
 
 //go:embed version.json
@@ -48,7 +47,7 @@ func main() {
 	jwtSecret = os.Getenv("JWT_SECRET")
 	natsUrl = os.Getenv("NATS_URL")
 
-	repo := repo.NewMongoRepo(mongoUrl)
+	chatRepo := repo.NewMongoRepo(mongoUrl)
 
 	var level = zerolog.InfoLevel
 	if isVerbose {
@@ -57,7 +56,7 @@ func main() {
 
 	logger := logstash.NewZerologLogger("chat-service", level)
 	logger = version.LoggerWithVersion(versionJSON, logger)
-	svc := chatservice.New([]byte(jwtSecret), repo, natsUrl)
+	svc := chatservice.New([]byte(jwtSecret), chatRepo, natsUrl)
 
 	var isSwagger = os.Getenv("SWAGGER") == "true"
 	if isSwagger {
