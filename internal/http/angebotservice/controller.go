@@ -94,7 +94,10 @@ func (c *OfferController) PayOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.service.PayOffer(offerId, userid)
+	err = c.service.PayOffer(offerId, userid)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // OccupyOffer godoc

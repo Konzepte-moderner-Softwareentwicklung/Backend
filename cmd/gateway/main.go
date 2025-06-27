@@ -23,7 +23,6 @@ const (
 )
 
 var (
-	port           int
 	natsURL        string
 	jwtKey         string
 	userService    string

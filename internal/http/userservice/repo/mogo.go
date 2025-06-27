@@ -13,15 +13,15 @@ import (
 )
 
 type User struct {
-	ID             uuid.UUID `bson:"_id"             json:"id"`
-	BirthDate      time.Time `bson:"birthDate"      json:"birthDate"`
-	FirstName      string    `bson:"firstName"      json:"firstName"`
-	LastName       string    `bson:"lastName"       json:"lastName"`
-	Email          string    `bson:"email"          json:"email"`
-	Password       string    `bson:"password"       json:"-"`
-	PhoneNumber    string    `bson:"phoneNumber"    json:"phoneNumber"`
-	ProfilePicture string    `bson:"profilePicture" json:"profilePicture"`
-	SessionData webauthn.SessionData `bson:"sessionData"    json:"sessionData"`
+	ID             uuid.UUID             `bson:"_id"             json:"id"`
+	BirthDate      time.Time             `bson:"birthDate"      json:"birthDate"`
+	FirstName      string                `bson:"firstName"      json:"firstName"`
+	LastName       string                `bson:"lastName"       json:"lastName"`
+	Email          string                `bson:"email"          json:"email"`
+	Password       string                `bson:"password"       json:"-"`
+	PhoneNumber    string                `bson:"phoneNumber"    json:"phoneNumber"`
+	ProfilePicture string                `bson:"profilePicture" json:"profilePicture"`
+	SessionData    webauthn.SessionData  `bson:"sessionData"    json:"sessionData"`
 	Credentials    []webauthn.Credential `bson:"credentials"   json:"credentials"`
 }
 

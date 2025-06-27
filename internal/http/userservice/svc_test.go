@@ -70,7 +70,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 
 	password := "some password"
 	user := repo.User{
-		Email: uuid.New().String() + "@example.com",
+		Email:    uuid.New().String() + "@example.com",
 		ID:       id,
 		Password: password,
 	}

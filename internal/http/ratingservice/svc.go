@@ -15,6 +15,7 @@ type Service struct {
 }
 
 func NewService(natsUrl string, repo Repository) *Service {
+
 	conn, err := nats.Connect(natsUrl)
 	if err != nil {
 		panic(err)
@@ -25,6 +26,8 @@ func NewService(natsUrl string, repo Repository) *Service {
 		Conn:       conn,
 		Repository: repo,
 	}
+
+	svc.setupRoutes()
 
 	return svc
 }
@@ -63,10 +66,12 @@ func (svc *Service) StartNats(done <-chan struct{}) {
 		}
 	})
 
-	select {
-	case <-done:
-		svc.GetLogger().Info().Msg("Shutting down NATS service")
-		sub.Unsubscribe()
-		svc.Conn.Close()
+	<-done
+	svc.GetLogger().Info().Msg("Shutting down NATS service")
+	err := sub.Unsubscribe()
+	if err != nil {
+		svc.GetLogger().Err(err).Msg("Error shutting down NATS service")
 	}
+	svc.Conn.Close()
+
 }
