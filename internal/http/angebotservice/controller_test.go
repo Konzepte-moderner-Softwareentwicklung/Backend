@@ -35,8 +35,7 @@ func (m *MockService) OccupieOffer(id, userID uuid.UUID, space repoangebot.Space
 }
 func (m *MockService) GetOffersByFilter(filter repoangebot.Filter) ([]*repoangebot.Offer, error) {
 
-	offer, err := m.GetOffersByFilter(filter)
-	return offer, err
+	return nil, nil
 }
 
 func TestHandleCreateOffer_Success(t *testing.T) {
