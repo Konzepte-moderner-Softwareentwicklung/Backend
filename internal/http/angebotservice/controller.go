@@ -25,7 +25,7 @@ const (
 type OfferController struct {
 	*server.Server
 	*msclient.Client
-	service service.Service
+	service service.OfferService
 	*auth.AuthMiddleware
 	*nats.Conn
 }
@@ -38,7 +38,7 @@ type CreateOfferResponse struct {
 	ImageURL string `json:"image_url"`
 }
 
-func New(svc service.Service, secret []byte) *OfferController {
+func New(svc service.OfferService, secret []byte) *OfferController {
 	NATS_URL := os.Getenv("NATS_URL")
 	conn, err := nats.Connect(NATS_URL)
 	if err != nil {

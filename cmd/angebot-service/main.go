@@ -73,7 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	api := angebotservice.New(*svc, []byte(jwtSecret))
+	api := angebotservice.New(svc, []byte(jwtSecret))
 
 	var isSwagger = os.Getenv("SWAGGER") == "true"
 	if isSwagger {
