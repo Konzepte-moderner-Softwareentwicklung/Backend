@@ -413,6 +413,7 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
+		c.GetLogger().Err(err).Msg("Fehler beim Parsen der ID")
 		c.Error(w, "Fehler beim Parsen der ID", http.StatusBadRequest)
 		return
 	}
