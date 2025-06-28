@@ -79,7 +79,7 @@ type Size struct {
 type Offer struct {
 	ID            uuid.UUID  `json:"id" bson:"_id"`
 	Driver        uuid.UUID  `json:"driver"`
-	IsGesuch      bool       `json:"isGesuch"`
+	IsGesuch      bool       `json:"isGesuch" bson:"isGesuch"`
 	Title         string     `json:"title"`
 	Description   string     `json:"description"`
 	Price         float64    `json:"price"`
@@ -106,6 +106,9 @@ func (o *Offer) HasEnoughFreeSpace(space Space) bool {
 }
 
 type Filter struct {
+	Price            float64   `json:"price"`
+	IncludePassed    bool      `json:"includePassed"`
+	DateTime         time.Time `json:"dateTime"`
 	NameStartsWith   string    `json:"nameStartsWith"`
 	SpaceNeeded      Space     `json:"spaceNeeded"`
 	LocationFrom     Location  `json:"locationFrom"`

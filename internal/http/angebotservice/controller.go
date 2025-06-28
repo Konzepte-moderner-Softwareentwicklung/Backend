@@ -210,6 +210,7 @@ func (c *OfferController) handleCreateOffer(w http.ResponseWriter, r *http.Reque
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	c.GetLogger().Info().Any("offer", offer).Msg("Offer created successfully")
 	if err = json.NewEncoder(w).Encode(struct {
 		ID       string `json:"id"`
 		ImageURL string `json:"image_url"`

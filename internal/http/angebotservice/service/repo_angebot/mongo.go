@@ -6,6 +6,7 @@ import (
 	"log"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -75,6 +76,20 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 		var offer Offer
 		if err := cur.Decode(&offer); err != nil {
 			return nil, err
+		}
+
+		if !ft.IncludePassed {
+			if offer.EndDateTime.Before(time.Now()) {
+				continue
+			}
+		}
+
+		if ft.Price != 0 && offer.Price >= ft.Price {
+			continue
+		}
+		var nullTime = time.Time{}
+		if ft.DateTime != nullTime && offer.StartDateTime.Day() == ft.DateTime.Day() {
+			continue
 		}
 
 		// Titel-Filter
