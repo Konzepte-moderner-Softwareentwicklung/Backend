@@ -32,11 +32,17 @@ func NewService(natsUrl string, repo Repository) *Service {
 	return svc
 }
 
+type RatingEntry struct {
+	Content string `json:"content" bson:"content"`
+	Value   int    `json:"value" bson:"value"`
+}
+
 type Rating struct {
-	UserIDFrom uuid.UUID `json:"user_id_from" bson:"user_id_from"`
-	UserIDTo   uuid.UUID `json:"user_id_to" bson:"user_id_to"`
-	Value      int       `json:"value" bson:"value"`
-	Content    string    `json:"content" bson:"content"`
+	UserIDFrom uuid.UUID     `json:"user_id_from" bson:"user_id_from"`
+	UserIDTo   uuid.UUID     `json:"user_id_to" bson:"user_id_to"`
+	Entrys     []RatingEntry `json:"entries" bson:"entries"`
+	Value      int           `json:"value" bson:"value"`
+	Content    string        `json:"content" bson:"content"`
 }
 
 func (svc *Service) StartNats(done <-chan struct{}) {
