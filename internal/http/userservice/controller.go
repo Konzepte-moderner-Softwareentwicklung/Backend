@@ -380,7 +380,11 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.ID = uuid.New()
 	err = c.service.CreateUser(user)
 	if err != nil {
-		c.Error(w, "Fehler beim Erstellen des Benutzers", http.StatusInternalServerError)
+		if err == ERR_EMAIL_ALREADY_EXISTS {
+			c.Error(w, err.Error(), http.StatusConflict)
+		} else {
+			c.Error(w, "Fehler beim Erstellen des Benutzers", http.StatusInternalServerError)
+		}
 		return
 	}
 

@@ -74,10 +74,12 @@ func (s *UserService) DeleteUser(id uuid.UUID) error {
 	return s.repo.DeleteUser(id)
 }
 
+var ERR_EMAIL_ALREADY_EXISTS = errors.New("email already exists")
+
 func (s *UserService) CreateUser(user repo.User) error {
 	temp, _ := s.repo.GetUserByEmail(user.Email)
 	if temp.ID != uuid.Nil {
-		return errors.New("email already exists")
+		return ERR_EMAIL_ALREADY_EXISTS
 	}
 
 	hashedPassword, err := hasher.HashPassword(user.Password)
