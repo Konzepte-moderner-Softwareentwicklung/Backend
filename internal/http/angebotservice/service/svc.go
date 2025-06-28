@@ -31,6 +31,8 @@ func (s *Service) CreateOffer(offer *repoangebot.Offer, url string) (uuid.UUID, 
 }
 
 func (s *Service) OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space repoangebot.Space) error {
+
+	space.Occupier = userId
 	return s.repo.OccupieOffer(offerId, userId, space)
 }
 
