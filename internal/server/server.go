@@ -86,6 +86,9 @@ func (s *Server) WithHandlerFunc(path string, handler http.HandlerFunc, methods 
 }
 
 func (s *Server) Error(w http.ResponseWriter, message string, code int) {
+	if w == nil {
+		return
+	}
 	s.log.Error().Msgf("Error: %s", message)
 	http.Error(w, message, code)
 }

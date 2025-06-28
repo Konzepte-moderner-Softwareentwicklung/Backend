@@ -9,11 +9,19 @@ import (
 	"github.com/google/uuid"
 )
 
+type OfferService interface {
+	GetOffer(id uuid.UUID) (*repoangebot.Offer, error)
+	CreateOffer(offer *repoangebot.Offer, url string) (uuid.UUID, error)
+	OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space repoangebot.Space) error
+	PayOffer(offerId uuid.UUID, userId uuid.UUID) error
+	GetOffersByFilter(filter repoangebot.Filter) ([]*repoangebot.Offer, error)
+}
+
 type Service struct {
 	repo repoangebot.Repo
 }
 
-func New(repo repoangebot.Repo) *Service {
+func New(repo repoangebot.Repo) OfferService {
 	return &Service{
 		repo: repo,
 	}

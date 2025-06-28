@@ -2,6 +2,7 @@ package chatservice
 
 import (
 	"encoding/json"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service/mocks"
 	"net/http"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service"
@@ -18,7 +19,7 @@ const (
 
 type ChatController struct {
 	*server.Server
-	service service.Service
+	service mocks.Service
 	*auth.AuthMiddleware
 }
 
@@ -35,7 +36,7 @@ type SendMessageRequest struct {
 func New(secret []byte, repo repo.Repository, natsUrl string) *ChatController {
 	svc := &ChatController{
 		Server:         server.NewServer(),
-		service:        *service.New(repo, natsUrl),
+		service:        service.New(repo, natsUrl),
 		AuthMiddleware: auth.NewAuthMiddleware(secret),
 	}
 	svc.setupRoutes()
