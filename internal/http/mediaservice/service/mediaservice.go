@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"embed"
 	"fmt"
 	"log"
 
@@ -82,6 +83,9 @@ func (m *MediaService) UploadPicture(ctx context.Context, uploader string, conte
 	return name, err
 }
 
+//go:embed impala.jpg
+var defaultImage embed.FS
+
 // GetPicture mit Context-Parameter
 func (m *MediaService) GetPicture(ctx context.Context, pictureName string) ([]byte, error) {
 	object, err := m.client.GetObject(ctx, PICTURE_BUCKET_NAME, pictureName, minio.GetObjectOptions{})
@@ -96,6 +100,13 @@ func (m *MediaService) GetPicture(ctx context.Context, pictureName string) ([]by
 
 	var buf bytes.Buffer
 	if _, err := buf.ReadFrom(object); err != nil {
+		if err.Error() == "The specified key does not exist." {
+			data, err := defaultImage.ReadFile("impala.jpg")
+			if err != nil {
+				return nil, fmt.Errorf("failed to read default image: %v", err)
+			}
+			return data, nil
+		}
 		return nil, fmt.Errorf("failed to read object: %v", err)
 	}
 	return buf.Bytes(), nil
