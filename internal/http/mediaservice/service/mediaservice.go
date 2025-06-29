@@ -50,8 +50,8 @@ func New(endpoint, accessKeyID, secretAccessKey string) (*MediaService, error) {
 func (m *MediaService) UploadPicture(ctx context.Context, uploader string, contentType string, picture []byte) (string, error) {
 	name := uuid.New().String()
 
-	// file size limit to 6MB
-	if len(picture) > 6e6 {
+	// file size limit to 60MB
+	if len(picture) > 6e7 {
 		return "", fmt.Errorf("file size to big. max 6mb allowed")
 	}
 

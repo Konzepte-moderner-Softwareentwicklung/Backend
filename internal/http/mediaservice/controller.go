@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/mediaservice/service"
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/middleware/auth"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/server"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -20,6 +22,7 @@ const (
 type MediaController struct {
 	mediaservice *service.MediaService
 	*server.Server
+	*auth.AuthMiddleware
 }
 
 type ErrorResponse struct {
@@ -31,9 +34,11 @@ type UploadResponse struct {
 }
 
 func New(svc *service.MediaService) *MediaController {
+	secret := os.Getenv("JWT_SECRET")
 	svr := &MediaController{
-		mediaservice: svc,
-		Server:       server.NewServer(),
+		mediaservice:   svc,
+		Server:         server.NewServer(),
+		AuthMiddleware: auth.NewAuthMiddleware([]byte(secret)),
 	}
 	svr.setupRoutes()
 	return svr
@@ -42,7 +47,7 @@ func New(svc *service.MediaService) *MediaController {
 func (mc *MediaController) setupRoutes() {
 	// for example for angebot bilder
 	mc.WithHandlerFunc("/multi/{id}", mc.GetCompoundLinks, http.MethodGet)
-	mc.WithHandlerFunc("/multi/{id}", mc.UploadToCompoundLinks, http.MethodPost)
+	mc.WithHandlerFunc("/multi/{id}", mc.EnsureJWT(mc.UploadToCompoundLinks), http.MethodPost)
 
 	// fuer einzelne bilder wie profilbilder oder banner
 	mc.WithHandlerFunc("/image", mc.handleIndex, http.MethodGet)
