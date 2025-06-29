@@ -11,7 +11,8 @@ Die Architektur umfasst folgende Services:
 - **NATS** (Message Broker mit JetStream)
 - **MongoDB** (Datenbank)
 - **MinIO** (Objektspeicher)
-- Verschiedene Anwendungsservices (User, Angebot, Tracking, Media, Gateway, Frontend)
+- **Elasticsearch, Logstash & Kibana** (Logging & Monitoring)
+- **Verschiedene Anwendungsservices** (User, Angebot, Rating, Tracking, Media, Chat, Gateway)
 - **NATS-UI** (Monitoring-Interface für NATS)
 - **nginx** als Reverse Proxy für das Frontend und TLS-Termination
 
@@ -22,18 +23,23 @@ Die Architektur umfasst folgende Services:
 ## Docker Compose Services
 
 | Service           | Beschreibung                               | Port(s)           |
-|-------------------|-------------------------------------------|-------------------|
-| nats              | Message Broker mit JetStream               | 4222, 8222        |
-| nats-ui           | NATS Monitoring UI                         | 31311             |
-| mongo             | MongoDB Datenbank                          | 27017             |
-| minio             | Objektspeicher (S3-kompatibel)            | 9000, 9001        |
-| gateway           | API Gateway                               | 8081              |
-| user-service      | Benutzerverwaltung                         | 8082              |
-| angebot-service   | Verwaltung von Angeboten und Gesuchen     | 8084              |
-| tracking-service  | Tracking der Fahrten                       | 8085              |
-| media-service     | Verwaltung von Medieninhalten              | 8083              |
-| frontend          | Frontend Webanwendung                      | 8080              |
-| nginx             | Reverse Proxy & TLS                        | 80, 443           |
+|------------------|---------------------------------------------|-------------------|
+| nats             | Message Broker mit JetStream                | 4222, 8222        |
+| nats-ui          | NATS Monitoring UI                          | 31311             |
+| mongo            | MongoDB Datenbank                           | 27017             |
+| minio            | Objektspeicher (S3-kompatibel)              | 9000, 9001        |
+| gateway          | API Gateway                                 | 8081              |
+| user-service     | Benutzerverwaltung                          | 8082              |
+| angebot-service  | Verwaltung von Angeboten und Gesuchen       | 8084              |
+| tracking-service | Tracking der Fahrten                        | 8085              |
+| media-service    | Verwaltung von Medieninhalten               | 8083              |
+| rating-service   | Bewertungssystem                            | -                 |
+| chat-service     | Chat-Funktion zwischen Nutzern              | -                 |
+| frontend         | Frontend Webanwendung                       | 8080              |
+| nginx            | Reverse Proxy & TLS                         | 80, 443           |
+| elasticsearch    | Speichert strukturierte Log-Daten           | 9200              |
+| kibana           | Analyse-UI für Logs                         | 5601              |
+| logstash         | Verarbeitung & Weiterleitung von Logs       | -                 |
 
 ---
 
@@ -44,7 +50,7 @@ Die Architektur umfasst folgende Services:
 - Zusätzliche Felder bei Angebotserstellung: Handynummer (privat), Profilbild
 
 ### Login
-- E-Mail und Passwort
+- E-Mail und Passwort oder mit E-Mail und Webauthn (Passkey, apple FaceID, Fingerabdruck)
 
 ### Suche
 - Suche nach Angeboten oder Gesuchen
@@ -75,13 +81,23 @@ Die Architektur umfasst folgende Services:
 - Fahrer kann Standort teilen
 - Statusabfrage der Fahrt möglich
 
+### Chat
+- Kommunikation zwischen Fahrer und Mitfahrer möglich
+- Integration mit Fahrtdaten zur zeitlichen Zuordnung
+
 ---
 
 ## Nutzung
 
-1. Repository klonen
-   ```bash
-   git clone https://github.com/Konzepte-moderner-Softwareentwicklung/Backend.git
-   cd Backend
-   docker compose build
-   docker compose up
+### Backend starten
+
+```bash
+# Repository klonen
+git clone https://github.com/Konzepte-moderner-Softwareentwicklung/Backend.git
+cd Backend
+
+# Docker-Images bauen
+docker compose build
+
+# Entwicklungsumgebung starten
+docker compose up
