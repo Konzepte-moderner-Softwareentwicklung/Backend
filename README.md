@@ -101,7 +101,7 @@ chmod 777 logging_data
 # Docker-Images bauen
 docker compose build
 
-# add you ip and port to frontend in nginx/nginx.con
+# add you ip and port to frontend in nginx/nginx.conf
 # start frontend
 
 # Entwicklungsumgebung starten
