@@ -2,8 +2,9 @@ package chatservice
 
 import (
 	"encoding/json"
-	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service/mocks"
 	"net/http"
+
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service/mocks"
 
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/chatservice/service/repo"
@@ -48,6 +49,33 @@ func (c *ChatController) setupRoutes() {
 	c.WithHandlerFunc("/", c.EnsureJWT(c.CreateChat), http.MethodPost)
 	c.WithHandlerFunc("/{chatId}", c.EnsureJWT(c.HandleGetChat), http.MethodGet)
 	c.WithHandlerFunc("/{chatId}", c.EnsureJWT(c.HandleSendMessage), http.MethodPost)
+	c.WithHandlerFunc("/{chatId}/add", c.EnsureJWT(c.HandleAddUserToChat), http.MethodPost)
+}
+
+func (c *ChatController) HandleAddUserToChat(w http.ResponseWriter, r *http.Request) {
+	var (
+		vars   = mux.Vars(r)
+		err    error
+		chatID uuid.UUID
+	)
+	var userRequest struct {
+		UserIDs []uuid.UUID `json:"userIds"`
+	}
+	if err = json.NewDecoder(r.Body).Decode(&userRequest); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if chatID, err = uuid.Parse(vars["chatId"]); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, userID := range userRequest.UserIDs {
+		if err = c.service.AddUserToChat(chatID, userID); err != nil {
+			c.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 }
 
 // HandleGetChats godoc

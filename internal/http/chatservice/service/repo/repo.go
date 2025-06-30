@@ -25,4 +25,5 @@ type Repository interface {
 	SendMessage(message Message, chatId uuid.UUID) error
 	CreateChat(user ...uuid.UUID) (uuid.UUID, error)
 	GetChats(userId uuid.UUID) ([]Chat, error)
+	AddUserToChat(userId uuid.UUID, chatId uuid.UUID) error
 }

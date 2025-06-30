@@ -13,6 +13,7 @@ type Service interface {
 	CreateChat(userIDs ...uuid.UUID) (uuid.UUID, error)
 	GetChat(chatID uuid.UUID, userID uuid.UUID) ([]repo.Message, error)
 	SendMessage(userID, chatID uuid.UUID, content string) error
+	AddUserToChat(chatID, userID uuid.UUID) error
 }
 
 type MockService struct {

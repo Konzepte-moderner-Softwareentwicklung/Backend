@@ -28,6 +28,13 @@ func NewMongoRepo(uri string) Repository {
 	}
 }
 
+func (r *MongoRepo) AddUserToChat(userId uuid.UUID, chatId uuid.UUID) error {
+	filter := bson.M{"_id": chatId}
+	update := bson.M{"$push": bson.M{"user_ids": userId}}
+	_, err := r.chatCollection.UpdateOne(context.Background(), filter, update)
+	return err
+}
+
 func (r *MongoRepo) CreateChat(userIds ...uuid.UUID) (uuid.UUID, error) {
 	id := uuid.New()
 	chat := Chat{

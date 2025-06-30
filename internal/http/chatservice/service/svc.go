@@ -29,6 +29,10 @@ func (s *Service) GetChat(chatId, userId uuid.UUID) ([]repo.Message, error) {
 	return s.repo.GetHistory(chatId)
 }
 
+func (s *Service) AddUserToChat(userId uuid.UUID, chatId uuid.UUID) error {
+	return s.repo.AddUserToChat(userId, chatId)
+}
+
 func (s *Service) GetChats(userId uuid.UUID) ([]repo.Chat, error) {
 	return s.repo.GetChats(userId)
 }
