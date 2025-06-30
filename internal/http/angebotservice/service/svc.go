@@ -15,6 +15,8 @@ type OfferService interface {
 	OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space repoangebot.Space) error
 	PayOffer(offerId uuid.UUID, userId uuid.UUID) error
 	GetOffersByFilter(filter repoangebot.Filter) ([]*repoangebot.Offer, error)
+	EditOffer(offerId uuid.UUID, userId uuid.UUID, offer *repoangebot.Offer) error
+	DeleteOffer(offerId uuid.UUID) error
 }
 
 type Service struct {
@@ -27,8 +29,17 @@ func New(repo repoangebot.Repo) OfferService {
 	}
 }
 
+func (s *Service) DeleteOffer(offerId uuid.UUID) error {
+	return s.repo.DeleteOffer(offerId)
+}
+
 func (s *Service) GetOffer(id uuid.UUID) (*repoangebot.Offer, error) {
 	return s.repo.GetOffer(id)
+}
+
+func (s *Service) EditOffer(offerId uuid.UUID, userId uuid.UUID, offer *repoangebot.Offer) error {
+	err := s.repo.EditOffer(offerId, userId, offer)
+	return err
 }
 
 func (s *Service) CreateOffer(offer *repoangebot.Offer, url string) (uuid.UUID, error) {

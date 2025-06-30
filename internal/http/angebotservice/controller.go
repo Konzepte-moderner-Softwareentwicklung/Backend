@@ -58,11 +58,49 @@ func New(svc service.OfferService, secret []byte) *OfferController {
 func (c *OfferController) setupRoutes() {
 	c.WithHandlerFunc("/filter", c.handleGetOfferByFilter, http.MethodPost)
 	c.WithHandlerFunc("/", c.EnsureJWT(c.handleCreateOffer), http.MethodPost)
+	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.handleEditOffer), http.MethodPut)
+	c.WithHandlerFunc("/{id}", c.EnsureJWT(c.deleteOffer), http.MethodDelete)
 	c.WithHandlerFunc("/{id}", c.handleGetOffer, http.MethodGet)
 	c.WithHandlerFunc("/{id}/occupy", c.EnsureJWT(c.OccupyOffer), http.MethodPost)
 	c.WithHandlerFunc("/{id}/pay", c.EnsureJWT(c.PayOffer), http.MethodPost)
 
 	c.WithHandlerFunc("/{id}/rating", c.EnsureJWT(c.handlePostRating), http.MethodPost)
+}
+
+func (c *OfferController) deleteOffer(w http.ResponseWriter, r *http.Request) {
+	var (
+		err     error
+		offerId uuid.UUID
+		vars    = mux.Vars(r)
+	)
+	if offerId, err = uuid.Parse(vars["id"]); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.DeleteOffer(offerId)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (c *OfferController) handleEditOffer(w http.ResponseWriter, r *http.Request) {
+	var (
+		err     error
+		offerId uuid.UUID
+		offer   *repoangebot.Offer
+	)
+
+	if err = json.NewDecoder(r.Body).Decode(offer); err != nil {
+		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = c.service.EditOffer(offerId, uuid.New(), offer)
+	if err != nil {
+		c.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // PayOffer godoc

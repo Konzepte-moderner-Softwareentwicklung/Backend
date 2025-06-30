@@ -38,6 +38,16 @@ func NewMongoRepo(mongoUri string) (*MongoRepo, error) {
 	}, nil
 }
 
+func (r *MongoRepo) DeleteOffer(offerId uuid.UUID) error {
+	_, err := r.offerCollection.DeleteOne(context.Background(), bson.M{"_id": offerId})
+	return err
+}
+
+func (r *MongoRepo) EditOffer(offerId uuid.UUID, userId uuid.UUID, offer *Offer) error {
+	_, err := r.offerCollection.UpdateOne(context.Background(), bson.M{"_id": offerId}, bson.M{"$set": offer})
+	return err
+}
+
 func (r *MongoRepo) Close() error {
 	return r.offerCollection.Database().Client().Disconnect(context.Background())
 }

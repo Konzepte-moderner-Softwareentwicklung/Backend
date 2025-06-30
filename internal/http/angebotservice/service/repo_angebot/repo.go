@@ -128,4 +128,6 @@ type Repo interface {
 	OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space Space) error
 	ReleaseOffer(offerId uuid.UUID) error
 	UpdateOffer(offerId uuid.UUID, offer *Offer) error
+	EditOffer(offerId uuid.UUID, userId uuid.UUID, offer *Offer) error
+	DeleteOffer(offerId uuid.UUID) error
 }
