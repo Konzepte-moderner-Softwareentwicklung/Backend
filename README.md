@@ -95,6 +95,7 @@ Die Architektur umfasst folgende Services:
 # Repository klonen
 git clone https://github.com/Konzepte-moderner-Softwareentwicklung/Backend.git
 cd Backend
+mkdir logging_data
 chmod 777 logging_data
 
 # Docker-Images bauen
