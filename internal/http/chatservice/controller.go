@@ -106,6 +106,9 @@ func (c *ChatController) HandleGetChats(w http.ResponseWriter, r *http.Request) 
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if chats == nil {
+		chats = []repo.Chat{}
+	}
 
 	if err := json.NewEncoder(w).Encode(chats); err != nil {
 		c.Error(w, err.Error(), http.StatusInternalServerError)
@@ -189,6 +192,9 @@ func (c *ChatController) HandleGetChat(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if messages == nil {
+		messages = []repo.Message{}
 	}
 
 	err = json.NewEncoder(w).Encode(messages)

@@ -75,11 +75,11 @@ func (r *MongoRepo) GetUsers() ([]User, error) {
 
 	cursor, err := r.userCollection.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, err
+		return []User{}, err
 	}
 	var users []User
 	if err = cursor.All(ctx, &users); err != nil {
-		return nil, err
+		return []User{}, err
 	}
 	return users, nil
 }

@@ -56,7 +56,14 @@ func (s *Service) OccupieOffer(offerId uuid.UUID, userId uuid.UUID, space repoan
 }
 
 func (s *Service) GetOffersByFilter(filter repoangebot.Filter) ([]*repoangebot.Offer, error) {
-	return s.repo.GetOffersByFilter(filter)
+	offers, err := s.repo.GetOffersByFilter(filter)
+	if err != nil {
+		return []*repoangebot.Offer{}, err
+	}
+	if offers == nil {
+		return []*repoangebot.Offer{}, nil
+	}
+	return offers, nil
 }
 
 func (s *Service) PayOffer(offerId uuid.UUID, userId uuid.UUID) error {

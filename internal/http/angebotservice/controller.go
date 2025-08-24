@@ -318,6 +318,9 @@ func (c *OfferController) handleGetOfferByFilter(w http.ResponseWriter, r *http.
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if offers == nil {
+		offers = []*repoangebot.Offer{}
+	}
 	if err := json.NewEncoder(w).Encode(offers); err != nil {
 		c.Error(w, err.Error(), http.StatusInternalServerError)
 		return

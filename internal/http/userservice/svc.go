@@ -92,8 +92,14 @@ func (s *UserService) CreateUser(user repo.User) error {
 
 func (s *UserService) GetUsers() ([]repo.User, error) {
 	users, err := s.repo.GetUsers()
+	if err != nil {
+		return []repo.User{}, err
+	}
+	if users == nil {
+		return []repo.User{}, nil
+	}
 	for i := range len(users) {
 		users[i].Password = ""
 	}
-	return users, err
+	return users, nil
 }

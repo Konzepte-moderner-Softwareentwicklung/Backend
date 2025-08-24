@@ -74,7 +74,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 	// Nur Angebote laden, die nicht belegt sind
 	cur, err := r.offerCollection.Find(context.Background(), bson.M{})
 	if err != nil {
-		return nil, err
+		return []*Offer{}, err
 	}
 	defer func() {
 		if err := cur.Close(context.Background()); err != nil {
@@ -85,7 +85,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 	for cur.Next(context.Background()) {
 		var offer Offer
 		if err := cur.Decode(&offer); err != nil {
-			return nil, err
+			return []*Offer{}, err
 		}
 
 		if !ft.IncludePassed {
@@ -155,7 +155,7 @@ func (r *MongoRepo) GetOffersByFilter(ft Filter) ([]*Offer, error) {
 
 	// Cursor-Fehler nach Iteration prüfen
 	if err := cur.Err(); err != nil {
-		return nil, err
+		return []*Offer{}, err
 	}
 
 	return offers, nil

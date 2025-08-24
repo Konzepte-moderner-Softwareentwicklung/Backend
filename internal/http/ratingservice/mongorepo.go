@@ -34,14 +34,14 @@ func (mr *MongoRepo) GetRatings(userID uuid.UUID) ([]Rating, error) {
 	var ratings []Rating
 	cursor, err := mr.ratingCollection.Find(context.Background(), bson.M{"user_id_to": userID})
 	if err != nil {
-		return nil, err
+		return []Rating{}, err
 	}
 	defer cursor.Close(context.Background())
 	for cursor.Next(context.Background()) {
 		var rating Rating
 		err := cursor.Decode(&rating)
 		if err != nil {
-			return nil, err
+			return []Rating{}, err
 		}
 		ratings = append(ratings, rating)
 	}
