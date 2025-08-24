@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/http/ratingservice"
 	"github.com/Konzepte-moderner-Softwareentwicklung/Backend/internal/ratingclient"
 	"github.com/joho/godotenv"
 
@@ -132,10 +133,15 @@ func (c *UserController) HandleGetRating(w http.ResponseWriter, r *http.Request)
 	id, err := uuid.Parse(vars["id"])
 	if err != nil {
 		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	ratings, err := c.ratingClient.GetRatingsByUserID(id)
 	if err != nil {
 		c.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if ratings == nil {
+		ratings = []*ratingservice.Rating{}
 	}
 	if err := json.NewEncoder(w).Encode(ratings); err != nil {
 		c.Error(w, err.Error(), http.StatusInternalServerError)
@@ -322,6 +328,9 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Error(w, "Fehler beim Laden der Benutzer", http.StatusInternalServerError)
 		return
+	}
+	if users == nil {
+		users = []repo.User{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

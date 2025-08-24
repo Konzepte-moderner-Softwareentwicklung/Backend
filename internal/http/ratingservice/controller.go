@@ -42,6 +42,9 @@ func (svc *Service) HandleGetRatings(w http.ResponseWriter, r *http.Request) {
 		svc.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if ratings == nil {
+		ratings = []Rating{}
+	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(ratings); err != nil {
 		svc.Error(w, err.Error(), http.StatusInternalServerError)

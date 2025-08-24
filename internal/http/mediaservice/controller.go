@@ -176,12 +176,15 @@ func (mc *MediaController) GetCompoundLinks(w http.ResponseWriter, r *http.Reque
 	}
 
 	links, err := mc.mediaservice.GetMultiPicture(context.Background(), uid)
-	for i := range links {
-		links[i] = fmt.Sprintf("/media/image/%s", links[i])
-	}
 	if err != nil {
 		mc.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if links == nil {
+		links = []string{}
+	}
+	for i := range links {
+		links[i] = fmt.Sprintf("/media/image/%s", links[i])
 	}
 
 	w.WriteHeader(http.StatusOK)

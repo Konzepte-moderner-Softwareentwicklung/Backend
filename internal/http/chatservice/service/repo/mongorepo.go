@@ -50,7 +50,7 @@ func (r *MongoRepo) GetChats(userId uuid.UUID) ([]Chat, error) {
 	filter := bson.M{"user_ids": bson.M{"$in": []uuid.UUID{userId}}}
 	cursor, err := r.chatCollection.Find(context.Background(), filter)
 	if err != nil {
-		return nil, err
+		return []Chat{}, err
 	}
 
 	defer func() {
@@ -63,13 +63,13 @@ func (r *MongoRepo) GetChats(userId uuid.UUID) ([]Chat, error) {
 	for cursor.Next(context.Background()) {
 		var chat Chat
 		if err := cursor.Decode(&chat); err != nil {
-			return nil, err
+			return []Chat{}, err
 		}
 		chats = append(chats, chat)
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, err
+		return []Chat{}, err
 	}
 
 	return chats, nil
@@ -79,7 +79,7 @@ func (r *MongoRepo) GetHistory(id uuid.UUID) ([]Message, error) {
 	filter := bson.M{"chat_id": id}
 	cursor, err := r.messageCollection.Find(context.Background(), filter)
 	if err != nil {
-		return nil, err
+		return []Message{}, err
 	}
 	defer func() {
 		if err := cursor.Close(context.Background()); err != nil {
@@ -91,13 +91,13 @@ func (r *MongoRepo) GetHistory(id uuid.UUID) ([]Message, error) {
 	for cursor.Next(context.Background()) {
 		var message Message
 		if err := cursor.Decode(&message); err != nil {
-			return nil, err
+			return []Message{}, err
 		}
 		messages = append(messages, message)
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, err
+		return []Message{}, err
 	}
 
 	// Sort messages by creation time to ensure they are in chronological order

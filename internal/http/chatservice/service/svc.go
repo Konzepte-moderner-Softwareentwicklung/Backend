@@ -26,7 +26,14 @@ func New(repo repo.Repository, natsUrl string) *Service {
 }
 
 func (s *Service) GetChat(chatId, userId uuid.UUID) ([]repo.Message, error) {
-	return s.repo.GetHistory(chatId)
+	messages, err := s.repo.GetHistory(chatId)
+	if err != nil {
+		return []repo.Message{}, err
+	}
+	if messages == nil {
+		return []repo.Message{}, nil
+	}
+	return messages, nil
 }
 
 func (s *Service) AddUserToChat(userId uuid.UUID, chatId uuid.UUID) error {
@@ -34,7 +41,14 @@ func (s *Service) AddUserToChat(userId uuid.UUID, chatId uuid.UUID) error {
 }
 
 func (s *Service) GetChats(userId uuid.UUID) ([]repo.Chat, error) {
-	return s.repo.GetChats(userId)
+	chats, err := s.repo.GetChats(userId)
+	if err != nil {
+		return []repo.Chat{}, err
+	}
+	if chats == nil {
+		return []repo.Chat{}, nil
+	}
+	return chats, nil
 }
 
 func (s *Service) CreateChat(users ...uuid.UUID) (uuid.UUID, error) {

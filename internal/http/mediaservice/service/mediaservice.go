@@ -170,5 +170,8 @@ func (m *MediaService) GetMultiPicture(ctx context.Context, id uuid.UUID) ([]str
 			pictureNames = append(pictureNames, obj.Key)
 		}
 	}
+	if pictureNames == nil {
+		return []string{}, nil
+	}
 	return pictureNames, nil
 }
