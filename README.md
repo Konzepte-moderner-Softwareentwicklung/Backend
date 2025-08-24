@@ -99,10 +99,4 @@ mkdir logging_data
 chmod 777 logging_data
 
 # Docker-Images bauen
-docker compose build
-
-# add you ip and port to frontend in nginx/nginx.conf (line 21 and 50)
-# start frontend
-
-# Entwicklungsumgebung starten
-docker compose up
+docker compose up --build
